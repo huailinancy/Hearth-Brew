@@ -1,0 +1,2463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Hearth & Brew — Content Studio</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+
+/* ── Reset & tokens ─────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       #F4F1EC;
+  --surface:  #FDFBF8;
+  --ink:      #18120A;
+  --ink-2:    #5C4733;
+  --ink-3:    #A08870;
+  --border:   #E6DDD2;
+  --border-2: #D4C8B4;
+  --accent:   #C0692A;
+  --accent-d: #A3561F;
+  --green:    #1B6844;
+  --green-bg: #EDF7F2;
+  --red:      #9B2626;
+  --red-bg:   #FDF1F1;
+
+  --serif: 'Cormorant Garamond', Georgia, serif;
+  --sans:  'DM Sans', system-ui, sans-serif;
+
+  --r:    14px;
+  --r-sm: 8px;
+  --r-xs: 5px;
+
+  --sh:   0 1px 3px rgba(24,18,10,.05), 0 6px 24px rgba(24,18,10,.07);
+  --sh-h: 0 2px 8px rgba(24,18,10,.08), 0 12px 36px rgba(24,18,10,.12);
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--ink);
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ════════════════════════════════════════════════════════
+   TOP BAR — brand + account status
+   ════════════════════════════════════════════════════════ */
+#topbar {
+  height: 56px;
+  background: var(--ink);
+  display: flex;
+  align-items: center;
+  padding: 0 2rem;
+  gap: 1.5rem;
+  flex-shrink: 0;
+}
+
+.brand {
+  font-family: var(--serif);
+  font-size: 1.2rem;
+  font-weight: 400;
+  color: #F0E8DC;
+  letter-spacing: .01em;
+  white-space: nowrap;
+}
+.brand em { font-style: italic; color: #D4935A; }
+
+.bar-rule { width: 1px; height: 20px; background: rgba(255,255,255,.1); }
+
+.bar-sub {
+  font-size: .7rem;
+  font-weight: 400;
+  color: rgba(240,232,220,.3);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  flex: 1;
+}
+
+/* Account chips */
+.accounts {
+  display: flex;
+  gap: .4rem;
+}
+.acc-chip {
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .22rem .65rem;
+  border-radius: 20px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.09);
+  cursor: pointer;
+  transition: background .15s;
+}
+.acc-chip:hover { background: rgba(255,255,255,.11); }
+.acc-dot { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,.2); transition: background .3s; }
+.acc-dot.live { background: #3DD68C; }
+.acc-name { font-size: .68rem; font-weight: 500; color: rgba(240,232,220,.4); transition: color .3s; }
+.acc-name.live { color: rgba(240,232,220,.75); }
+
+/* ════════════════════════════════════════════════════════
+   CONTROL STRIP — horizontal inputs row
+   ════════════════════════════════════════════════════════ */
+#controls {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+/* Each control group */
+.ctrl {
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+}
+
+.ctrl-label {
+  font-size: .64rem;
+  font-weight: 600;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+/* Widths by type */
+.ctrl-type   { flex: 2; min-width: 180px; }
+.ctrl-details{ flex: 3; min-width: 220px; }
+.ctrl-tone   { flex: 1.5; min-width: 160px; }
+.ctrl-action { flex-shrink: 0; }
+
+/* Inputs */
+.inp {
+  background: var(--bg);
+  color: var(--ink);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: .52rem .75rem;
+  font-family: var(--sans);
+  font-size: .82rem;
+  outline: none;
+  transition: border-color .15s, background .15s;
+  width: 100%;
+}
+.inp:focus { border-color: var(--accent); background: #fff; }
+.inp::placeholder { color: var(--ink-3); }
+
+select.inp {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%23A08870' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right .7rem center;
+  padding-right: 2rem;
+}
+
+textarea.inp {
+  resize: none;
+  line-height: 1.5;
+  height: 38px;
+  min-height: 38px;
+}
+
+/* Custom reveal under select */
+.reveal {
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition: max-height .22s ease, opacity .2s ease, margin-top .22s;
+}
+.reveal.open { max-height: 50px; opacity: 1; margin-top: .3rem; }
+
+/* Platform toggle chips row */
+.platform-row {
+  display: flex;
+  gap: .35rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.plat-toggle {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .35rem .75rem;
+  border-radius: 20px;
+  border: 1px solid var(--border-2);
+  background: var(--bg);
+  cursor: pointer;
+  user-select: none;
+  transition: all .15s;
+  white-space: nowrap;
+}
+.plat-toggle:hover { border-color: var(--ink-3); }
+.plat-toggle.on {
+  background: var(--ink);
+  border-color: var(--ink);
+}
+.plat-toggle input { display: none; }
+.plat-pip { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; opacity: .5; transition: opacity .15s; }
+.plat-toggle.on .plat-pip { opacity: 1; }
+.plat-tname {
+  font-size: .74rem;
+  font-weight: 500;
+  color: var(--ink-2);
+  transition: color .15s;
+}
+.plat-toggle.on .plat-tname { color: #F0E8DC; }
+
+/* Generate button */
+.btn-gen {
+  padding: .55rem 1.5rem;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--r-sm);
+  font-family: var(--sans);
+  font-size: .83rem;
+  font-weight: 600;
+  letter-spacing: .02em;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 2px 10px rgba(192,105,42,.3);
+  transition: background .15s, transform .12s, box-shadow .15s;
+  height: 38px;
+}
+.btn-gen:hover:not(:disabled) {
+  background: var(--accent-d);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(192,105,42,.4);
+}
+.btn-gen:active:not(:disabled) { transform: none; }
+.btn-gen:disabled {
+  background: var(--border-2);
+  color: var(--ink-3);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+/* Second row of controls — platforms + action */
+.ctrl-row-2 {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: .6rem;
+  border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.ctrl-row-2-left {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  flex-wrap: wrap;
+}
+.platforms-label {
+  font-size: .64rem;
+  font-weight: 600;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+/* ════════════════════════════════════════════════════════
+   STAGE — main output area
+   ════════════════════════════════════════════════════════ */
+#stage {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2rem 2rem 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Notices */
+.notice {
+  display: flex;
+  align-items: flex-start;
+  gap: .65rem;
+  padding: .75rem 1rem;
+  border-radius: var(--r-sm);
+  font-size: .8rem;
+  line-height: 1.55;
+  max-width: 640px;
+  align-self: center;
+  width: 100%;
+}
+.notice.tip     { background: #FAF4ED; border: 1px solid #DEC4A0; color: var(--ink-2); }
+.notice.success { background: var(--green-bg); border: 1px solid #A8D8BE; color: var(--green); display: none; }
+.notice.error   { background: var(--red-bg); border: 1px solid #E8B2B2; color: var(--red); display: none; }
+.n-badge {
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .6rem; font-weight: 700;
+  flex-shrink: 0; margin-top: 1px;
+}
+.notice.tip     .n-badge { background: #DEC4A0; color: #7A5028; }
+.notice.success .n-badge { background: #A8D8BE; color: var(--green); }
+.notice.error   .n-badge { background: #E8B2B2; color: var(--red); }
+
+/* Loader */
+#loader {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: .9rem;
+  padding: 4rem;
+}
+.spin {
+  width: 32px; height: 32px;
+  border: 2px solid var(--border-2);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin .75s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loader-t { font-size: .84rem; font-weight: 500; color: var(--ink); }
+.loader-s { font-size: .73rem; color: var(--ink-3); }
+
+/* ── Empty state ── */
+#empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2.5rem;
+  padding: 2rem;
+}
+
+.empty-headline {
+  text-align: center;
+}
+.empty-h {
+  font-family: var(--serif);
+  font-size: 2.8rem;
+  font-weight: 300;
+  color: var(--ink);
+  letter-spacing: -.02em;
+  line-height: 1.1;
+}
+.empty-h em { font-style: italic; color: var(--accent); }
+.empty-sub {
+  font-size: .84rem;
+  color: var(--ink-3);
+  margin-top: .6rem;
+  font-weight: 300;
+}
+
+/* Platform preview tiles */
+.empty-tiles {
+  display: flex;
+  gap: .75rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.empty-tile {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 1.4rem 1.6rem;
+  text-align: center;
+  min-width: 130px;
+  box-shadow: var(--sh);
+  transition: box-shadow .2s, transform .2s;
+}
+.empty-tile:hover { box-shadow: var(--sh-h); transform: translateY(-2px); }
+.et-ring {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--border-2);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto .65rem;
+}
+.et-ring svg { width: 14px; height: 14px; stroke: var(--ink-3); fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.et-name { font-size: .8rem; font-weight: 600; color: var(--ink); }
+.et-desc { font-size: .68rem; color: var(--ink-3); margin-top: .2rem; line-height: 1.4; }
+
+/* ── Cards grid ── */
+#cards {
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+}
+
+/* Output card */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+  box-shadow: var(--sh);
+  transition: box-shadow .2s, transform .18s;
+}
+.card:hover { box-shadow: var(--sh-h); transform: translateY(-1px); }
+
+.card-head {
+  display: flex;
+  align-items: center;
+  padding: .72rem 1.1rem;
+  border-bottom: 1px solid var(--border);
+  background: #FDFAF6;
+  gap: .75rem;
+}
+.card-plat {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  flex: 1;
+}
+.card-pip { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.card-pname { font-size: .78rem; font-weight: 600; color: var(--ink); }
+
+/* Score pill */
+.score-pill {
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+  padding: .2rem .65rem;
+  border-radius: 20px;
+  font-size: .7rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.sp-hi   { background: var(--green-bg); color: var(--green); border: 1px solid #A8D8BE; }
+.sp-mid  { background: #FFF8ED; color: #8A5C10; border: 1px solid #E8C87A; }
+.sp-lo   { background: var(--red-bg); color: var(--red); border: 1px solid #E8B2B2; }
+.sp-best { background: var(--ink); color: #F0E8DC; border: 1px solid var(--ink); }
+.sp-sub  { font-size: .62rem; font-weight: 400; opacity: .7; }
+
+.card-btns { display: flex; gap: .4rem; flex-shrink: 0; }
+.btn-sm {
+  padding: .25rem .75rem;
+  border-radius: var(--r-xs);
+  font-family: var(--sans);
+  font-size: .71rem;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: .01em;
+  transition: all .13s;
+  white-space: nowrap;
+}
+.btn-copy {
+  background: transparent;
+  border: 1px solid var(--border-2);
+  color: var(--ink-2);
+}
+.btn-copy:hover { background: var(--bg); color: var(--ink); }
+.btn-copy.ok    { background: var(--green-bg); border-color: #A8D8BE; color: var(--green); }
+
+.btn-pub {
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  color: #fff;
+  box-shadow: 0 1px 4px rgba(192,105,42,.22);
+}
+.btn-pub:hover  { background: var(--accent-d); border-color: var(--accent-d); }
+.btn-pub.done   { background: var(--green); border-color: var(--green); box-shadow: none; cursor: default; }
+.btn-pub.tt     { background: #010101; border-color: #010101; color: #fff; }
+.btn-pub.tt:hover { background: #333; border-color: #333; }
+.btn-pub.nc     { background: transparent; border-color: var(--border-2); color: var(--ink-3); cursor: not-allowed; box-shadow: none; }
+
+.card-body { padding: 1.1rem 1.2rem; }
+.post-text { font-size: .87rem; line-height: 1.85; color: var(--ink); white-space: pre-wrap; }
+
+.card-foot {
+  border-top: 1px solid var(--border);
+  background: #FDFAF6;
+  padding: .65rem 1.2rem;
+}
+.score-bars { display: flex; flex-direction: column; gap: .26rem; margin-bottom: .5rem; }
+.sb-row   { display: flex; align-items: center; gap: .55rem; }
+.sb-label { font-size: .64rem; color: var(--ink-3); width: 86px; flex-shrink: 0; }
+.sb-track { flex: 1; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.sb-fill  { height: 100%; background: var(--accent); border-radius: 2px; }
+.sb-val   { font-size: .64rem; font-weight: 600; color: var(--ink-2); width: 26px; text-align: right; flex-shrink: 0; }
+.foot-meta { display: flex; align-items: center; justify-content: space-between; }
+.char-c { font-size: .67rem; color: var(--ink-3); }
+.limit  { font-size: .66rem; font-weight: 600; padding: .1rem .5rem; border-radius: 7px; }
+.l-ok   { background: var(--green-bg); color: var(--green); }
+.l-bad  { background: var(--red-bg); color: var(--red); }
+
+/* ── History ── */
+#history { display: none; flex-direction: column; gap: .5rem; }
+.hist-sec-head {
+  display: flex;
+  align-items: baseline;
+  gap: .5rem;
+}
+.hist-title { font-size: .68rem; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-2); }
+.hist-count { font-size: .68rem; color: var(--ink-3); }
+.hist-item  { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-sm); overflow: hidden; }
+.hist-btn {
+  width: 100%; background: none; border: none;
+  padding: .62rem .9rem;
+  display: flex; align-items: center; justify-content: space-between;
+  cursor: pointer; font-family: var(--sans); gap: .65rem;
+  transition: background .12s;
+}
+.hist-btn:hover { background: var(--bg); }
+.hist-l    { display: flex; align-items: center; gap: .55rem; }
+.hist-ts   { font-size: .66rem; font-weight: 600; color: var(--ink-3); background: var(--bg); border: 1px solid var(--border); border-radius: 3px; padding: .08rem .45rem; }
+.hist-lbl  { font-size: .8rem; font-weight: 500; color: var(--ink); }
+.hist-arr  { width: 11px; height: 11px; stroke: var(--ink-3); transition: transform .18s; flex-shrink: 0; }
+.hist-arr.open { transform: rotate(180deg); }
+.hist-body { border-top: 1px solid var(--border); padding: .75rem .9rem; display: none; }
+.hist-body.open { display: block; }
+.hist-plat { margin-bottom: .7rem; }
+.hist-plat:last-child { margin-bottom: 0; }
+.hist-pname { font-size: .66rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--ink-3); margin-bottom: .25rem; }
+.hist-pt    { font-size: .81rem; color: var(--ink); line-height: 1.75; white-space: pre-wrap; }
+
+/* ════════════════════════════════════════════════════════
+   CONNECT MODAL
+   ════════════════════════════════════════════════════════ */
+#modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(24,18,10,.55);
+  backdrop-filter: blur(5px);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+#modal.open { display: flex; }
+
+.modal-box {
+  background: var(--surface);
+  border-radius: 18px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 16px 56px rgba(24,18,10,.2);
+  overflow: hidden;
+}
+.modal-top {
+  background: var(--ink);
+  padding: 1.4rem 1.6rem;
+}
+.modal-title {
+  font-family: var(--serif);
+  font-size: 1.3rem;
+  font-weight: 300;
+  color: #F0E8DC;
+  line-height: 1.2;
+}
+.modal-title em { font-style: italic; color: #D4935A; }
+.modal-desc { font-size: .73rem; color: rgba(240,232,220,.38); margin-top: 4px; }
+
+.modal-list { padding: 1.1rem 1.4rem; display: flex; flex-direction: column; gap: .45rem; }
+
+.soc-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: .6rem .75rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  gap: .65rem;
+}
+.soc-left { display: flex; align-items: center; gap: .55rem; }
+.soc-icon {
+  width: 26px; height: 26px;
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.soc-name   { font-size: .8rem; font-weight: 600; color: var(--ink); }
+.soc-handle { font-size: .68rem; color: var(--ink-3); margin-top: 1px; }
+
+.btn-conn {
+  padding: .25rem .78rem;
+  border-radius: var(--r-xs);
+  font-family: var(--sans);
+  font-size: .71rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .14s;
+  border: 1px solid var(--border-2);
+  background: var(--surface);
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+.btn-conn:hover { background: var(--bg); color: var(--ink); }
+.btn-conn.on    { background: var(--green-bg); border-color: #A8D8BE; color: var(--green); cursor: default; }
+
+.modal-status-badge {
+  font-size: .7rem; font-weight: 700; padding: .25rem .65rem;
+  border-radius: 20px; border: 1px solid var(--border);
+  background: var(--bg); color: var(--ink-3); white-space: nowrap; flex-shrink: 0;
+}
+.modal-status-badge.ok  { background: var(--green-bg); border-color: #A8D8BE; color: var(--green); }
+.modal-status-badge.err { background: #FEF2F2; border-color: #FCA5A5; color: #DC2626; }
+
+.modal-foot {
+  padding: .85rem 1.4rem 1.3rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.btn-modal-skip {
+  background: none; border: none;
+  font-family: var(--sans); font-size: .77rem;
+  color: var(--ink-3); cursor: pointer;
+  transition: color .13s;
+}
+.btn-modal-skip:hover { color: var(--ink-2); }
+.btn-modal-done {
+  padding: .5rem 1.2rem;
+  background: var(--ink);
+  border: none;
+  border-radius: var(--r-sm);
+  font-family: var(--sans);
+  font-size: .79rem; font-weight: 600;
+  color: #F0E8DC;
+  cursor: pointer;
+  transition: background .14s;
+}
+.btn-modal-done:hover { background: var(--ink-2); }
+
+/* ── API Key Bar ── */
+/* ── Preview & Post button on card ── */
+.btn-preview-post {
+  width: 100%;
+  padding: .65rem;
+  background: var(--ink);
+  color: #F0E8DC;
+  border: none;
+  border-top: 1px solid var(--border);
+  font-family: var(--sans);
+  font-size: .8rem;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: .02em;
+  transition: background .14s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .45rem;
+}
+.btn-preview-post:hover { background: var(--ink-2); }
+.btn-preview-post svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ── Post Preview Modal ── */
+#post-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(24,18,10,.6);
+  backdrop-filter: blur(6px);
+  z-index: 300;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+#post-modal.open { display: flex; }
+.post-modal-box {
+  background: var(--surface);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 24px 80px rgba(24,18,10,.25);
+  display: flex;
+  flex-direction: column;
+}
+.pm-head {
+  padding: 1.1rem 1.4rem .9rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  position: sticky;
+  top: 0;
+  background: var(--surface);
+  z-index: 1;
+  border-radius: 20px 20px 0 0;
+}
+.pm-plat { display: flex; align-items: center; gap: .5rem; }
+.pm-pip  { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.pm-pname { font-size: .9rem; font-weight: 700; color: var(--ink); }
+.pm-close {
+  background: none; border: none; font-size: 1.3rem; line-height: 1;
+  color: var(--ink-3); cursor: pointer; padding: .1rem .3rem; transition: color .12s;
+}
+.pm-close:hover { color: var(--ink); }
+.pm-body { padding: 1.1rem 1.4rem; flex: 1; display: flex; flex-direction: column; gap: 1rem; }
+.pm-text-block {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 1rem 1.1rem;
+}
+.pm-text { font-size: .88rem; line-height: 1.85; color: var(--ink); white-space: pre-wrap; }
+.pm-hashtags { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .6rem; }
+.pm-hash-chip {
+  font-size: .7rem; font-weight: 600; color: var(--accent);
+  background: #FAF0E8; border: 1px solid #DEC4A0; border-radius: 20px; padding: .12rem .6rem;
+}
+.pm-img-wrap {
+  border-radius: var(--r-sm); overflow: hidden; background: var(--border);
+  max-height: 280px; display: flex; align-items: center; justify-content: center;
+}
+.pm-img-wrap img { width: 100%; object-fit: cover; display: block; }
+.pm-no-img {
+  padding: 1.5rem; text-align: center; font-size: .78rem; color: var(--ink-3);
+  background: var(--bg); border: 1px dashed var(--border-2); border-radius: var(--r-sm);
+}
+.pm-no-img span { display: block; font-size: 1.5rem; margin-bottom: .35rem; }
+.pm-sound {
+  display: inline-flex; align-items: center; gap: .35rem;
+  background: #1A1A2E; color: #EE1D52; border: 1px solid rgba(238,29,82,.3);
+  border-radius: 20px; padding: .22rem .75rem; font-size: .72rem; font-weight: 600;
+}
+.pm-sched { border: 1px solid var(--border); border-radius: var(--r-sm); overflow: hidden; }
+.pm-sched-tabs { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--border); }
+.pm-tab {
+  padding: .7rem 1rem; background: var(--bg); border: none;
+  font-family: var(--sans); font-size: .8rem; font-weight: 600; color: var(--ink-3);
+  cursor: pointer; transition: all .14s;
+  display: flex; align-items: center; justify-content: center; gap: .4rem;
+}
+.pm-tab:first-child { border-right: 1px solid var(--border); }
+.pm-tab.active { background: var(--ink); color: #F0E8DC; }
+.pm-tab svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.pm-sched-body { padding: 1rem 1.1rem; }
+.pm-now-panel { display: flex; flex-direction: column; gap: .65rem; }
+.pm-now-note { font-size: .78rem; color: var(--ink-2); line-height: 1.55; }
+.btn-post-now {
+  width: 100%; padding: .75rem; background: var(--accent); color: #fff; border: none;
+  border-radius: var(--r-sm); font-family: var(--sans); font-size: .88rem; font-weight: 700;
+  cursor: pointer; letter-spacing: .01em; box-shadow: 0 2px 12px rgba(192,105,42,.35);
+  transition: background .14s, transform .12s, box-shadow .14s;
+  display: flex; align-items: center; justify-content: center; gap: .5rem;
+}
+.btn-post-now:hover:not(:disabled) { background: var(--accent-d); transform: translateY(-1px); box-shadow: 0 4px 18px rgba(192,105,42,.45); }
+.btn-post-now:disabled { background: var(--border-2); color: var(--ink-3); box-shadow: none; cursor: not-allowed; transform: none; }
+.btn-post-now.done { background: var(--green); box-shadow: none; cursor: default; transform: none; }
+.pm-later-panel { display: none; flex-direction: column; gap: .8rem; }
+.pm-later-panel.show { display: flex; }
+.pm-dt-row { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
+.pm-dt-label { font-size: .72rem; font-weight: 600; color: var(--ink-3); letter-spacing: .05em; text-transform: uppercase; white-space: nowrap; }
+.pm-dt-inp {
+  flex: 1; padding: .5rem .7rem; border: 1px solid var(--border-2); border-radius: var(--r-xs);
+  font-family: var(--sans); font-size: .8rem; color: var(--ink); background: #fff; outline: none; min-width: 200px;
+}
+.pm-dt-inp:focus { border-color: var(--accent); }
+.btn-add-queue {
+  width: 100%; padding: .7rem; background: var(--ink); color: #F0E8DC; border: none;
+  border-radius: var(--r-sm); font-family: var(--sans); font-size: .85rem; font-weight: 700;
+  cursor: pointer; transition: background .14s, transform .12s;
+  display: flex; align-items: center; justify-content: center; gap: .45rem;
+}
+.btn-add-queue:hover:not(:disabled) { background: var(--ink-2); transform: translateY(-1px); }
+.btn-add-queue:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+.btn-add-queue.done { background: var(--green); cursor: default; transform: none; }
+.pm-tt-note {
+  background: #0E0E0E; border-radius: var(--r-sm); padding: .85rem 1rem;
+  display: flex; flex-direction: column; gap: .5rem;
+}
+.pm-tt-note p { font-size: .78rem; color: rgba(255,255,255,.6); line-height: 1.5; }
+.btn-open-tt {
+  padding: .6rem 1rem; background: #EE1D52; color: #fff; border: none;
+  border-radius: var(--r-xs); font-family: var(--sans); font-size: .8rem; font-weight: 700;
+  cursor: pointer; transition: background .14s; align-self: flex-start;
+}
+.btn-open-tt:hover { background: #c41742; }
+
+/* ── Scheduled Queue Panel ── */
+#queue-panel {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); box-shadow: var(--sh); overflow: hidden;
+}
+.queue-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .75rem 1.1rem; background: var(--ink); gap: .75rem;
+}
+.queue-title { font-family: var(--serif); font-size: 1rem; font-weight: 300; color: #F0E8DC; letter-spacing: .01em; }
+.queue-title em { font-style: italic; color: #D4935A; }
+.queue-badge { background: var(--accent); color: #fff; font-size: .65rem; font-weight: 700; padding: .1rem .5rem; border-radius: 20px; }
+.queue-empty { padding: 1.4rem 1.2rem; font-size: .8rem; color: var(--ink-3); text-align: center; }
+#queue-list { display: flex; flex-direction: column; }
+.q-item {
+  display: flex; align-items: flex-start; gap: .75rem; padding: .75rem 1.1rem;
+  border-bottom: 1px solid var(--border); animation: fadeIn .25s ease; transition: background .12s;
+}
+.q-item:last-child { border-bottom: none; }
+@keyframes fadeIn { from { opacity:0; transform: translateY(-4px); } to { opacity:1; transform:none; } }
+.q-pip { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+.q-meta { flex: 1; min-width: 0; }
+.q-platform { font-size: .7rem; font-weight: 700; color: var(--ink-3); letter-spacing: .06em; text-transform: uppercase; }
+.q-text { font-size: .8rem; color: var(--ink); line-height: 1.6; margin-top: .2rem; white-space: pre-wrap; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.q-time { display: flex; align-items: center; gap: .4rem; flex-shrink: 0; }
+.q-ts { font-size: .68rem; font-weight: 600; color: var(--ink-3); background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: .1rem .45rem; white-space: nowrap; }
+.q-ts.now-label { background: var(--green-bg); border-color: #A8D8BE; color: var(--green); }
+.q-del { background: none; border: none; cursor: pointer; color: var(--ink-3); font-size: 1rem; line-height: 1; padding: 0 .2rem; transition: color .12s; }
+.q-del:hover { color: var(--red); }
+
+/* ── Image Generation Section ── */
+.img-section {
+  border-top: 1px solid var(--border);
+  background: #FDFAF6;
+  padding: .8rem 1.2rem;
+}
+.img-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .6rem;
+  margin-bottom: .6rem;
+}
+.img-section-label {
+  font-size: .67rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+}
+.img-section-label svg { width: 11px; height: 11px; stroke: var(--ink-3); fill: none; stroke-width: 1.8; }
+.btn-gen-img {
+  padding: .24rem .75rem;
+  border-radius: var(--r-xs);
+  font-family: var(--sans);
+  font-size: .71rem;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: .01em;
+  transition: all .13s;
+  background: var(--ink);
+  border: 1px solid var(--ink);
+  color: #F0E8DC;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+}
+.btn-gen-img:hover:not(:disabled) { background: var(--ink-2); border-color: var(--ink-2); }
+.btn-gen-img:disabled { opacity: .5; cursor: not-allowed; }
+.btn-gen-img .spin-xs {
+  width: 10px; height: 10px;
+  border: 1.5px solid rgba(240,232,220,.3);
+  border-top-color: #F0E8DC;
+  border-radius: 50%;
+  animation: spin .65s linear infinite;
+  display: none;
+}
+.btn-gen-img.loading .spin-xs { display: block; }
+
+.img-prompt-row {
+  display: flex;
+  gap: .4rem;
+  align-items: flex-start;
+  margin-bottom: .55rem;
+}
+.img-prompt-box {
+  flex: 1;
+  font-size: .74rem;
+  line-height: 1.55;
+  color: var(--ink-2);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xs);
+  padding: .4rem .65rem;
+  resize: none;
+  font-family: var(--sans);
+  outline: none;
+  min-height: 52px;
+}
+.img-prompt-box:focus { border-color: var(--accent); background: #fff; }
+
+.img-preview {
+  position: relative;
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  background: var(--border);
+  aspect-ratio: 1 / 1;
+  max-width: 100%;
+  display: block;
+}
+.img-preview.show { display: block; }
+.img-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: opacity .3s;
+}
+.img-preview img.loading { opacity: 0; }
+.img-loading-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: .7rem;
+  background: rgba(244,241,236,.9);
+  backdrop-filter: blur(3px);
+  font-size: .75rem;
+  color: var(--ink-3);
+}
+.img-loading-overlay .spin { width: 24px; height: 24px; }
+.img-actions {
+  display: flex;
+  gap: .4rem;
+  margin-top: .5rem;
+}
+.btn-img-act {
+  flex: 1;
+  padding: .28rem .5rem;
+  border-radius: var(--r-xs);
+  font-family: var(--sans);
+  font-size: .69rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .13s;
+  border: 1px solid var(--border-2);
+  background: var(--surface);
+  color: var(--ink-2);
+  text-align: center;
+}
+.btn-img-act:hover { background: var(--bg); color: var(--ink); }
+.btn-img-act a { color: inherit; text-decoration: none; }
+
+/* ── Sound suggestion chip ── */
+.sound-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  background: #1A1A2E;
+  color: #EE1D52;
+  border: 1px solid rgba(238,29,82,.3);
+  border-radius: 20px;
+  padding: .2rem .7rem;
+  font-size: .67rem;
+  font-weight: 600;
+  letter-spacing: .02em;
+  margin-top: .5rem;
+}
+.sound-chip svg { width: 9px; height: 9px; fill: #EE1D52; }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  html, body { overflow: auto; height: auto; }
+  #stage { overflow: visible; }
+  .ctrl-type, .ctrl-details, .ctrl-tone { min-width: 140px; }
+  .empty-h { font-size: 2rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════
+     TOP BAR
+     ════════════════════════════════════════════════════════ -->
+<header id="topbar">
+  <div class="brand">Hearth &amp; <em>Brew</em></div>
+  <div class="bar-rule"></div>
+  <div class="bar-sub">Content Studio</div>
+
+  <!-- Account connection status chips -->
+  <div class="accounts">
+    <div class="acc-chip" onclick="openModal()" title="Manage Instagram">
+      <div class="acc-dot" id="dot-ig"></div>
+      <span class="acc-name" id="lbl-ig">Instagram</span>
+    </div>
+    <div class="acc-chip" onclick="openModal()" title="Manage Facebook">
+      <div class="acc-dot" id="dot-fb"></div>
+      <span class="acc-name" id="lbl-fb">Facebook</span>
+    </div>
+    <div class="acc-chip" onclick="openModal()" title="Manage TikTok">
+      <div class="acc-dot" id="dot-tt"></div>
+      <span class="acc-name" id="lbl-tt">TikTok</span>
+    </div>
+    <div class="acc-chip" onclick="openModal()" title="Manage LinkedIn">
+      <div class="acc-dot" id="dot-li"></div>
+      <span class="acc-name" id="lbl-li">LinkedIn</span>
+    </div>
+  </div>
+</header>
+
+<!-- ════════════════════════════════════════════════════════
+     API KEY BAR
+     ════════════════════════════════════════════════════════ -->
+<!-- ════════════════════════════════════════════════════════
+     CONTROL STRIP — all inputs in one horizontal bar
+     ════════════════════════════════════════════════════════ -->
+<div id="controls">
+
+  <!-- Row 1: content inputs -->
+  <div class="ctrl ctrl-type">
+    <span class="ctrl-label">Content Type</span>
+    <select class="inp" id="content-type" onchange="revealCustom('content-type','ct-reveal','ct-custom')">
+      <option>New seasonal drink launch</option>
+      <option>Weekly Baker's Choice reveal</option>
+      <option>Board game night event</option>
+      <option>Community book trade highlight</option>
+      <option>Ferry commuter morning special</option>
+      <option>Behind-the-scenes baking</option>
+      <option>Rainy PNW day cozy vibes</option>
+      <option>Regular customer spotlight</option>
+      <option>Seasonal / holiday promotion</option>
+      <option>General brand post</option>
+      <option value="custom">Custom…</option>
+    </select>
+    <div class="reveal" id="ct-reveal">
+      <input class="inp" type="text" id="ct-custom" placeholder="Describe the content…" maxlength="120"/>
+    </div>
+  </div>
+
+  <div class="ctrl ctrl-details">
+    <span class="ctrl-label">Details <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--ink-3)">— optional</span></span>
+    <textarea class="inp" id="details" placeholder="Product name, price, date, event details…"></textarea>
+  </div>
+
+  <div class="ctrl ctrl-tone">
+    <span class="ctrl-label">Tone</span>
+    <select class="inp" id="tone" onchange="revealCustom('tone','tone-reveal','tone-custom')">
+      <option>Default brand voice</option>
+      <option>Playful and punny</option>
+      <option>Heartfelt and sincere</option>
+      <option>Urgent / FOMO</option>
+      <option>Calm and cozy</option>
+      <option value="custom">Custom…</option>
+    </select>
+    <div class="reveal" id="tone-reveal">
+      <input class="inp" type="text" id="tone-custom" placeholder="e.g. Dry wit, like a local columnist" maxlength="120"/>
+    </div>
+  </div>
+
+  <!-- Row 2: platforms + generate -->
+  <div class="ctrl-row-2">
+    <div class="ctrl-row-2-left">
+      <span class="platforms-label">Platforms</span>
+      <div class="platform-row">
+
+        <label class="plat-toggle on" id="pt-Instagram">
+          <input type="checkbox" value="Instagram" checked onchange="togglePlat(this,'Instagram')">
+          <div class="plat-pip" style="background:#E1652A"></div>
+          <span class="plat-tname">Instagram</span>
+        </label>
+
+        <label class="plat-toggle on" id="pt-Facebook">
+          <input type="checkbox" value="Facebook" checked onchange="togglePlat(this,'Facebook')">
+          <div class="plat-pip" style="background:#4A6ED9"></div>
+          <span class="plat-tname">Facebook</span>
+        </label>
+
+        <label class="plat-toggle" id="pt-TikTok">
+          <input type="checkbox" value="TikTok" onchange="togglePlat(this,'TikTok')">
+          <div class="plat-pip" style="background:#EE1D52"></div>
+          <span class="plat-tname">TikTok</span>
+        </label>
+
+        <label class="plat-toggle" id="pt-LinkedIn">
+          <input type="checkbox" value="LinkedIn" onchange="togglePlat(this,'LinkedIn')">
+          <div class="plat-pip" style="background:#0A66C2"></div>
+          <span class="plat-tname">LinkedIn</span>
+        </label>
+
+      </div>
+    </div>
+
+    <button class="btn-gen" id="gen-btn" onclick="handleGenerate()">
+      Generate Posts
+    </button>
+  </div>
+
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════
+     STAGE — output canvas
+     ════════════════════════════════════════════════════════ -->
+<main id="stage">
+
+  <!-- Static tip -->
+  <div class="notice tip" style="align-self:center;width:100%;max-width:none">
+    <div class="n-badge">i</div>
+    <span>Each post is scored on emotional hook, platform fit, CTA strength, brand voice, and visual appeal. The top scorer is marked — that's the one to publish.</span>
+  </div>
+
+  <div class="notice error" id="error-bar">
+    <div class="n-badge">!</div>
+    <span id="error-msg">Something went wrong.</span>
+  </div>
+
+  <div class="notice success" id="success-bar">
+    <div class="n-badge">&#10003;</div>
+    <span>Posts generated and scored — images are loading automatically. Publish the top result for best engagement.</span>
+  </div>
+
+  <!-- Loader -->
+  <div id="loader">
+    <div class="spin"></div>
+    <div class="loader-t">Generating posts, scores &amp; image prompts</div>
+    <div class="loader-s">Claude is writing, evaluating, and crafting visuals in parallel</div>
+  </div>
+
+  <!-- Cards -->
+  <div id="cards"></div>
+
+  <!-- Empty state -->
+  <div id="empty">
+    <div class="empty-headline">
+      <div class="empty-h">Write once,<br><em>publish everywhere.</em></div>
+      <div class="empty-sub">Fill in the controls above and click Generate Posts to get started.</div>
+    </div>
+
+    <div class="empty-tiles">
+      <div class="empty-tile">
+        <div class="et-ring">
+          <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="var(--ink-3)" stroke="none"/></svg>
+        </div>
+        <div class="et-name">Instagram</div>
+        <div class="et-desc">Visual caption<br>+ hashtags</div>
+      </div>
+      <div class="empty-tile">
+        <div class="et-ring">
+          <svg viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
+        </div>
+        <div class="et-name">Facebook</div>
+        <div class="et-desc">Community<br>storytelling</div>
+      </div>
+      <div class="empty-tile">
+        <div class="et-ring">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.17 8.17 0 004.78 1.52V6.75a4.85 4.85 0 01-1.01-.06z" stroke="var(--ink-3)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="et-name">TikTok</div>
+        <div class="et-desc">Video hooks<br>+ trending tags</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scheduled Queue -->
+  <div id="queue-panel" style="display:none">
+    <div class="queue-head">
+      <div class="queue-title">Scheduled <em>Queue</em></div>
+      <span class="queue-badge" id="queue-badge">0 posts</span>
+    </div>
+    <div id="queue-empty" class="queue-empty">No scheduled posts yet — use the Schedule button on any generated post.</div>
+    <div id="queue-list"></div>
+  </div>
+
+  <!-- Session history -->
+  <div id="history">
+    <div class="hist-sec-head">
+      <span class="hist-title">Session History</span>
+      <span class="hist-count" id="hist-count"></span>
+    </div>
+    <div id="hist-list"></div>
+  </div>
+
+</main>
+
+
+<!-- ════════════════════════════════════════════════════════
+     CONNECTED ACCOUNTS MODAL
+     ════════════════════════════════════════════════════════ -->
+<div id="modal">
+<div class="modal-box" style="max-width:480px">
+
+  <div class="modal-top">
+    <div class="modal-title">Connected <em>accounts</em></div>
+    <div class="modal-desc">Tokens are configured in the HTML file. Status shown below.</div>
+  </div>
+
+  <div class="modal-list" style="gap:.6rem">
+
+    <!-- Facebook -->
+    <div class="soc-row">
+      <div class="soc-left">
+        <div class="soc-icon" style="background:#1877F2">
+          <svg width="10" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
+        </div>
+        <div>
+          <div class="soc-name">Facebook</div>
+          <div class="soc-handle" id="modal-fb-status">Checking…</div>
+        </div>
+      </div>
+      <span class="modal-status-badge" id="modal-fb-badge">—</span>
+    </div>
+
+    <!-- Instagram -->
+    <div class="soc-row">
+      <div class="soc-left">
+        <div class="soc-icon" style="background:linear-gradient(135deg,#F7931E,#C3226D,#833AB4)">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.2" fill="#fff" stroke="none"/></svg>
+        </div>
+        <div>
+          <div class="soc-name">Instagram</div>
+          <div class="soc-handle" id="modal-ig-status">Checking…</div>
+        </div>
+      </div>
+      <span class="modal-status-badge" id="modal-ig-badge">—</span>
+    </div>
+
+    <!-- TikTok -->
+    <div class="soc-row">
+      <div class="soc-left">
+        <div class="soc-icon" style="background:#010101">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.17 8.17 0 004.78 1.52V6.75a4.85 4.85 0 01-1.01-.06z" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div>
+          <div class="soc-name">TikTok</div>
+          <div class="soc-handle" id="modal-tt-status">Checking…</div>
+        </div>
+      </div>
+      <span class="modal-status-badge" id="modal-tt-badge">—</span>
+    </div>
+
+    <!-- LinkedIn -->
+    <div class="soc-row">
+      <div class="soc-left">
+        <div class="soc-icon" style="background:#0A66C2">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+        </div>
+        <div>
+          <div class="soc-name">LinkedIn</div>
+          <div class="soc-handle" id="modal-li-status">Checking…</div>
+        </div>
+      </div>
+      <span class="modal-status-badge" id="modal-li-badge">—</span>
+    </div>
+
+    <div style="margin-top:.4rem;padding:.7rem .9rem;background:#FAF4ED;border:1px solid #DEC4A0;border-radius:8px;font-size:.73rem;color:#7A5028;line-height:1.6">
+      To update tokens, open the HTML file in a text editor and find the <strong>📱 SOCIAL MEDIA TOKENS</strong> section near the top of the &lt;script&gt; tag.
+    </div>
+
+  </div>
+
+  <div class="modal-foot">
+    <button class="btn-modal-done" onclick="closeModal()">Close</button>
+  </div>
+
+</div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════
+     POST PREVIEW & SCHEDULE MODAL
+     ════════════════════════════════════════════════════════ -->
+<div id="post-modal">
+<div class="post-modal-box">
+
+  <div class="pm-head">
+    <div class="pm-plat">
+      <div class="pm-pip" id="pm-pip"></div>
+      <span class="pm-pname" id="pm-pname">Platform</span>
+    </div>
+    <button class="pm-close" onclick="closePostModal()">×</button>
+  </div>
+
+  <div class="pm-body">
+
+    <!-- Post text -->
+    <div class="pm-text-block">
+      <div class="pm-text" id="pm-text"></div>
+      <div class="pm-hashtags" id="pm-hashtags"></div>
+    </div>
+
+    <!-- Sound suggestion (TikTok) -->
+    <div id="pm-sound-wrap" style="display:none">
+      <div class="pm-sound" id="pm-sound"></div>
+    </div>
+
+    <!-- Generated image preview -->
+    <div id="pm-img-wrap" class="pm-img-wrap" style="display:none">
+      <img id="pm-img" src="" alt="Post image"/>
+    </div>
+    <div id="pm-no-img" class="pm-no-img">
+      <span>🖼️</span>
+      No image generated yet — go back and use <strong>AI Image</strong> to create one before posting to Instagram.
+    </div>
+
+    <!-- Schedule / Post section -->
+    <div class="pm-sched" id="pm-sched-section">
+      <div class="pm-sched-tabs">
+        <button class="pm-tab active" id="pm-tab-now" onclick="setPmTab('now')">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Post Now
+        </button>
+        <button class="pm-tab" id="pm-tab-later" onclick="setPmTab('later')">
+          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Schedule Later
+        </button>
+      </div>
+      <div class="pm-sched-body">
+
+        <!-- Post Now panel -->
+        <div class="pm-now-panel" id="pm-now-panel">
+          <p class="pm-now-note" id="pm-now-note">Click below to publish this post immediately to <strong id="pm-now-plat"></strong>.</p>
+          <button class="btn-post-now" id="pm-post-btn" onclick="pmPostNow()">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            <span id="pm-post-btn-label">Publish Now</span>
+          </button>
+        </div>
+
+        <!-- Schedule Later panel -->
+        <div class="pm-later-panel" id="pm-later-panel">
+          <div class="pm-dt-row">
+            <span class="pm-dt-label">Date &amp; Time</span>
+            <input type="datetime-local" class="pm-dt-inp" id="pm-dt-inp"/>
+          </div>
+          <button class="btn-add-queue" id="pm-queue-btn" onclick="pmAddToQueue()">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span id="pm-queue-btn-label">Add to Schedule Queue</span>
+          </button>
+        </div>
+
+        <!-- TikTok manual panel -->
+        <div id="pm-tt-panel" style="display:none">
+          <div class="pm-tt-note">
+            <p>TikTok doesn't support direct API posting. Your caption has been copied to clipboard — just paste it when you upload your video.</p>
+            <button class="btn-open-tt" onclick="pmOpenTikTok()">Open TikTok Upload ↗</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<script>
+/* ──────────────────────────────────────────────────────────
+   CONFIG
+   ────────────────────────────────────────────────────────── */
+/* ============================================================
+   🔑 API KEYS — ADD YOUR KEYS HERE
+   ============================================================ */
+
+// ***** ADD YOUR ANTHROPIC API KEY BELOW *****
+const API_KEY = "API HERE";
+
+// ***** ADD YOUR OPENAI API KEY BELOW (for DALL-E 3 image generation) *****
+const OPENAI_KEY = "YOUR_OPENAI_API_KEY_HERE";
+
+/* ============================================================
+   📱 SOCIAL MEDIA TOKENS — ADD YOUR TOKENS HERE
+   ============================================================
+
+   FACEBOOK & INSTAGRAM (Meta Graph API — free)
+   → Get tokens at: https://developers.facebook.com/tools/explorer
+   → Permissions needed: pages_manage_posts, instagram_basic, instagram_content_publish
+
+   TIKTOK (TikTok for Developers — free)
+   → Register app at: https://developers.tiktok.com
+   → Get OAuth access token with scope: video.publish, video.upload
+
+   LINKEDIN (LinkedIn Developer Portal — free, token expires every 60 days)
+   → Register app at: https://www.linkedin.com/developers/apps
+   → Add products: "Share on LinkedIn" + "Sign In with LinkedIn using OpenID Connect"
+   → Generate token at: https://www.linkedin.com/developers/tools/oauth/token-generator
+   → Scopes needed: w_member_social, openid, email
+   ============================================================ */
+
+// ***** ADD YOUR FACEBOOK PAGE ACCESS TOKEN BELOW *****
+const FB_TOKEN   = "YOUR_FACEBOOK_PAGE_ACCESS_TOKEN_HERE";
+// ***** ADD YOUR FACEBOOK PAGE ID BELOW *****
+const FB_PAGE_ID = "YOUR_FACEBOOK_PAGE_ID_HERE";
+
+// ***** ADD YOUR INSTAGRAM BUSINESS ACCOUNT ID BELOW *****
+const IG_USER_ID = "YOUR_INSTAGRAM_BUSINESS_ACCOUNT_ID_HERE";
+// ***** Instagram uses the same FB_TOKEN above *****
+
+// ***** ADD YOUR TIKTOK OAUTH ACCESS TOKEN BELOW *****
+const TIKTOK_TOKEN = "YOUR_TIKTOK_ACCESS_TOKEN_HERE";
+
+// ***** ADD YOUR LINKEDIN ACCESS TOKEN BELOW (expires in 60 days) *****
+const LINKEDIN_TOKEN = "YOUR_LINKEDIN_ACCESS_TOKEN_HERE";
+// ***** ADD YOUR LINKEDIN PERSON URN BELOW (e.g. urn:li:person:XXXXXXX) *****
+const LINKEDIN_URN   = "urn:li:person:YOUR_PERSON_URN_HERE";
+
+/* ============================================================ */
+
+// Enable generate button on load
+document.addEventListener("DOMContentLoaded", () => {
+  const btn = document.getElementById("gen-btn");
+  if (btn) btn.disabled = false;
+
+  // Auto-detect which platforms are configured and mark connected
+  if (FB_TOKEN && !FB_TOKEN.includes("YOUR_")) { CONNECTED.fb = true; updateChip("fb", "Facebook"); }
+  if (IG_USER_ID && !IG_USER_ID.includes("YOUR_")) { CONNECTED.ig = true; updateChip("ig", "Instagram"); }
+  if (TIKTOK_TOKEN && !TIKTOK_TOKEN.includes("YOUR_")) { CONNECTED.tt = true; updateChip("tt", "TikTok"); }
+  if (LINKEDIN_TOKEN && !LINKEDIN_TOKEN.includes("YOUR_")) { CONNECTED.li = true; updateChip("li", "LinkedIn"); }
+});
+
+function updateChip(key, label) {
+  const dot = document.getElementById("dot-" + key);
+  const lbl = document.getElementById("lbl-" + key);
+  if (dot) dot.classList.add("live");
+  if (lbl) { lbl.classList.add("live"); lbl.textContent = label; }
+}
+
+const PIPS = {
+  "Instagram": "#E1652A",
+  "Facebook":  "#4A6ED9",
+  "TikTok":    "#EE1D52",
+  "LinkedIn":  "#0A66C2",
+};
+
+const RULES = {
+  "Instagram":
+    "80-150 word visual caption. Warm, aspirational tone. 1-3 emojis max. Soft CTA. End with 6-8 hashtags on a new line (#EdmondsWA #PNWCoffee style). Also append a JSON block at the very end: {\"hashtags\":[\"#tag1\",...],\"sound\":null}",
+  "Facebook":
+    "100-180 words, community-focused storytelling. Warm and informational. One friendly question at the end to invite comments. No hashtags. Append: {\"hashtags\":[],\"sound\":null}",
+  "TikTok":
+    "50-80 words. High-energy hook as the opening line (make it impossible to scroll past). Trend-aware, conversational, Gen-Z adjacent. 3-5 hashtags (#FoodTok #CoffeeTok #SmallBusiness style). End with a suggested brief video concept in parentheses. Append: {\"hashtags\":[\"#FoodTok\",...],\"sound\":\"Suggest a specific trending TikTok audio/song that fits this vibe — be specific with artist and track name\"}",
+  "LinkedIn":
+    "120-200 words. Professional yet warm storytelling tone. Lead with an insight or story. Business-minded framing (community, local economy, craft). One thoughtful question at the end. No hashtags. Append: {\"hashtags\":[],\"sound\":null}",
+};
+
+const BRAND =
+`You are the social media copywriter for Hearth & Brew — a cozy independent coffee shop in downtown Edmonds, Washington, near the ferry terminal.
+Offerings: house-roasted small-batch coffee, full espresso bar, seasonal lattes (lavender honey, maple oat, Puget Sound fog), cold brew, chai, matcha. Fresh pastries daily, sourdough loaves, weekly Baker's Choice surprise, light lunch (quiches, grain bowls, soups). Board Game Lounge, Community Book Trade wall.
+Voice: friendly, genuine, occasionally playful — local friend energy, not a brand. Use "we" / "our". No corporate jargon. PNW-aware.
+Goal: maximise reach, saves, shares, comments, and new customer foot traffic.`;
+
+const SCORE_PROMPT = (platform, text) =>
+`Rate this ${platform} caption for engagement potential. Score each dimension.
+Caption: "${text}"
+Return ONLY valid JSON, no fences:
+{"emotional":{"score":0,"max":25},"platform":{"score":0,"max":20},"cta":{"score":0,"max":20},"voice":{"score":0,"max":20},"visual":{"score":0,"max":15}}`;
+
+const CONNECTED = { ig: false, fb: false, tt: false, li: false };
+const PLAT_KEYS = { "Instagram": "ig", "Facebook": "fb", "TikTok": "tt", "LinkedIn": "li" };
+
+let genCount = 0;
+let scheduledPosts = [];
+
+
+/* ──────────────────────────────────────────────────────────
+   PLATFORM TOGGLES
+   ────────────────────────────────────────────────────────── */
+function togglePlat(input, key) {
+  document.getElementById("pt-" + key).classList.toggle("on", input.checked);
+}
+
+function getSelectedPlatforms() {
+  return [...document.querySelectorAll("#controls input[type=checkbox]:checked")]
+    .map(cb => cb.value);
+}
+
+
+/* ──────────────────────────────────────────────────────────
+   CUSTOM FIELD REVEAL
+   ────────────────────────────────────────────────────────── */
+function revealCustom(selectId, revealId, inputId) {
+  const isCustom = document.getElementById(selectId).value === "custom";
+  document.getElementById(revealId).classList.toggle("open", isCustom);
+  if (isCustom) setTimeout(() => document.getElementById(inputId).focus(), 210);
+  else document.getElementById(inputId).value = "";
+}
+
+function resolveVal(selectId, customId) {
+  const el = document.getElementById(selectId);
+  if (el.value !== "custom") return el.value;
+  return document.getElementById(customId).value.trim() || null;
+}
+
+
+/* ──────────────────────────────────────────────────────────
+   UI STATE
+   ────────────────────────────────────────────────────────── */
+function setUI(state, msg) {
+  document.getElementById("loader").style.display       = state === "loading" ? "flex"  : "none";
+  document.getElementById("empty").style.display        = state === "idle"    ? "flex"  : "none";
+  document.getElementById("success-bar").style.display  = state === "done"    ? "flex"  : "none";
+  document.getElementById("error-bar").style.display    = state === "error"   ? "flex"  : "none";
+  document.getElementById("gen-btn").disabled            = state === "loading";
+  if (state !== "done") document.getElementById("cards").innerHTML = "";
+  if (msg) document.getElementById("error-msg").textContent = msg;
+}
+
+
+/* ──────────────────────────────────────────────────────────
+   GENERATE
+   ────────────────────────────────────────────────────────── */
+async function handleGenerate() {
+  const platforms   = getSelectedPlatforms();
+  const contentType = resolveVal("content-type", "ct-custom");
+  const tone        = resolveVal("tone", "tone-custom");
+
+  if (!platforms.length) { setUI("error", "Select at least one platform."); return; }
+  if (!contentType)      { setUI("error", "Please describe your custom content type."); return; }
+
+  setUI("loading");
+
+  try {
+    const extra = document.getElementById("details").value.trim();
+
+    const postsRaw = await callClaude(
+      contentType, platforms, extra, tone
+    );
+
+    // Score all posts + generate image prompts in parallel
+    const [scoreArr, imgPromptArr] = await Promise.all([
+      Promise.all(Object.entries(postsRaw).map(([p, d]) => scorePost(p, d.text))),
+      Promise.all(platforms.map(p => generateImagePrompt(contentType, extra, p).catch(() => "")))
+    ]);
+
+    /* Merge results */
+    const combined = {};
+    Object.keys(postsRaw).forEach((p, i) => {
+      combined[p] = {
+        text: postsRaw[p].text,
+        hashtags: postsRaw[p].hashtags,
+        sound: postsRaw[p].sound,
+        scores: scoreArr[i],
+        imagePrompt: imgPromptArr[i] || "",
+      };
+    });
+
+    setUI("done");
+    renderCards(combined);
+    addHistory(contentType, postsRaw);
+
+    // Auto-generate images for all cards immediately
+    Object.keys(combined).forEach((platform, i) => {
+      const cid = safeId(platform) + "_" + i;
+      // Stagger slightly so requests don't all fire simultaneously
+      setTimeout(() => doGenerateImage(cid, platform, 0), i * 800);
+    });
+
+  } catch (err) {
+    setUI("error", err.message || "Something went wrong. Please try again.");
+  }
+}
+
+
+/* ──────────────────────────────────────────────────────────
+   ANTHROPIC API — generate posts (with hashtags + sound)
+   ────────────────────────────────────────────────────────── */
+async function callClaude(contentType, platforms, extra, tone) {
+  const rulesBlock = platforms.map(p => `${p}: ${RULES[p]}`).join("\n");
+  const extraNote  = extra ? `\nAdditional details: ${extra}` : "";
+  const toneNote   = (tone && tone !== "Default brand voice") ? `\nTone: ${tone}` : "";
+
+  const prompt =
+`${BRAND}
+
+Write social media posts for: "${contentType}".${extraNote}${toneNote}
+
+Rules per platform (each platform text should end with a JSON metadata block on the last line):
+${rulesBlock}
+
+Return ONLY valid JSON, no markdown fences:
+{${platforms.map(p => `"${p}":"..."`).join(",")}}
+
+IMPORTANT: The value for each platform must be the full post text including the JSON metadata block appended at the very end (on its own line). Example:
+"Instagram": "Your beautiful caption here...\\n#tag1 #tag2\\n{\\"hashtags\\":[\\"#tag1\\",\\"#tag2\\"],\\"sound\\":null}"`;
+
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": API_KEY,
+      "anthropic-version": "2023-06-01",
+      "anthropic-dangerous-direct-browser-access": "true",
+    },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-6",
+      max_tokens: 1800,
+      messages: [{ role: "user", content: prompt }],
+    }),
+  });
+
+  if (!res.ok) {
+    const e = await res.json().catch(() => ({}));
+    throw new Error(e.error?.message || `API error ${res.status}`);
+  }
+
+  const data = await res.json();
+  const raw  = data.content[0].text.trim()
+    .replace(/^```json?\n?/, "").replace(/```$/, "");
+  const parsed = JSON.parse(raw);
+
+  // Extract metadata from each platform's text
+  const result = {};
+  for (const [plat, fullText] of Object.entries(parsed)) {
+    const metaMatch = fullText.match(/\{[^}]*"hashtags"[^}]*\}$/m);
+    let meta = { hashtags: [], sound: null };
+    let text = fullText;
+    if (metaMatch) {
+      try { meta = JSON.parse(metaMatch[0]); } catch {}
+      text = fullText.slice(0, metaMatch.index).trim();
+    }
+    result[plat] = { text, hashtags: meta.hashtags || [], sound: meta.sound || null };
+  }
+  return result;
+}
+
+
+/* ──────────────────────────────────────────────────────────
+   ANTHROPIC API — generate image prompt for a post
+   ────────────────────────────────────────────────────────── */
+async function generateImagePrompt(contentType, extra, platform) {
+  const platformStyle = {
+    "Instagram": "square 1:1, warm golden-hour photography, shallow depth of field, latte art visible, cozy café atmosphere",
+    "Facebook":  "landscape 4:3, warm community feel, inviting and familiar, natural light",
+    "TikTok":    "vertical 9:16, vibrant and trendy, Gen-Z aesthetic, bold colors and dynamic composition",
+  };
+  const style = platformStyle[platform] || "square 1:1, warm café photography";
+
+  const prompt = `You are a visual creative director for Hearth & Brew, a cozy artisan coffee shop in Edmonds, WA.
+
+Generate a detailed image generation prompt (for Stable Diffusion / DALL-E) for a social media post about: "${contentType}"${extra ? `. Details: ${extra}` : ""}.
+
+Platform: ${platform} — style guidance: ${style}
+
+The prompt should describe:
+- The specific food/drink product if applicable (latte, pastry, sourdough, etc.)
+- Lighting, mood, and atmosphere (warm, golden, cozy, PNW)
+- Props and background elements (wooden table, ceramic mug, rain on window, ferns, etc.)
+- Camera angle and framing
+- Color palette
+
+Return ONLY the image prompt text, nothing else. Make it rich and detailed (60-100 words). No preamble, no quotes.`;
+
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": API_KEY,
+      "anthropic-version": "2023-06-01",
+      "anthropic-dangerous-direct-browser-access": "true",
+    },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-6",
+      max_tokens: 200,
+      messages: [{ role: "user", content: prompt }],
+    }),
+  });
+  if (!res.ok) throw new Error("Image prompt generation failed");
+  const data = await res.json();
+  return data.content[0].text.trim();
+}
+
+/* ──────────────────────────────────────────────────────────
+   IMAGE GENERATION — using Pollinations.ai (free, no key)
+   ────────────────────────────────────────────────────────── */
+/* ──────────────────────────────────────────────────────────
+   OPENAI DALL-E 3 — generate image from prompt
+   ────────────────────────────────────────────────────────── */
+async function doGenerateImage(cid, platform, attempt) {
+  const promptBox = document.getElementById("imgprompt-" + cid);
+  const preview   = document.getElementById("imgpreview-" + cid);
+  const overlay   = document.getElementById("imgoverlay-" + cid);
+  const btn       = document.getElementById("imgbtn-" + cid);
+  const actRow    = document.getElementById("imgacts-" + cid);
+
+  const prompt = (promptBox?.value || "").trim();
+  attempt = attempt || 0;
+  if (!prompt) return;
+
+  btn.classList.add("loading");
+  btn.disabled = true;
+  btn.querySelector(".btn-label").textContent = attempt > 0 ? `Retry ${attempt}…` : "Generating…";
+
+  preview.classList.add("show");
+  overlay.style.display = "flex";
+  overlay.innerHTML = `<div class="spin"></div><span style="font-size:.73rem;color:var(--ink-3)">${attempt > 0 ? "Retrying…" : "Generating image…"}</span>`;
+
+  // Platform aspect ratio for DALL-E 3
+  const sizeMap = {
+    "Instagram": "1024x1024",
+    "Facebook":  "1792x1024",
+    "TikTok":    "1024x1792",
+  };
+  const size = sizeMap[platform] || "1024x1024";
+
+  const fullPrompt = `${prompt}, professional food photography, warm cozy lighting, artisan coffee shop aesthetic, high quality, beautiful, detailed`;
+
+  try {
+    const res = await fetch("https://api.openai.com/v1/images/generations", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${OPENAI_KEY}`,
+      },
+      body: JSON.stringify({
+        model:   "dall-e-3",
+        prompt:  fullPrompt,
+        n:       1,
+        size:    size,
+        quality: "standard",
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error?.message || `HTTP ${res.status}`);
+    }
+
+    const imgUrl = data.data?.[0]?.url;
+    if (!imgUrl) throw new Error("No image URL returned.");
+
+    const img = document.getElementById("imgel-" + cid);
+    img.onload = () => {
+      overlay.style.display = "none";
+      btn.classList.remove("loading");
+      btn.disabled = false;
+      btn.querySelector(".btn-label").textContent = "↻ Regenerate";
+      actRow.style.display = "flex";
+      img.dataset.blobSrc = imgUrl;
+    };
+    img.onerror = () => {
+      if (attempt < 2) setTimeout(() => doGenerateImage(cid, platform, attempt + 1), 1500);
+      else showImgError(cid, platform, "Image failed to load.");
+    };
+    img.crossOrigin = "anonymous";
+    img.src = imgUrl;
+
+  } catch (err) {
+    console.error("DALL-E error:", err.message);
+    if (attempt < 2) {
+      setTimeout(() => doGenerateImage(cid, platform, attempt + 1), 2000);
+    } else {
+      showImgError(cid, platform, err.message);
+    }
+  }
+}
+
+function showImgError(cid, platform, msg) {
+  const overlay = document.getElementById("imgoverlay-" + cid);
+  const btn     = document.getElementById("imgbtn-" + cid);
+  overlay.style.display = "flex";
+  overlay.innerHTML = `
+    <span style="color:var(--red);font-size:.73rem;text-align:center;padding:1rem;line-height:1.6">
+      ${escHtml(msg)}<br>
+      <button onclick="doGenerateImage('${cid}','${platform}',0)"
+        style="margin-top:.6rem;padding:.3rem .9rem;background:var(--accent);color:#fff;border:none;border-radius:5px;cursor:pointer;font-size:.72rem;font-family:var(--sans)">
+        Try Again
+      </button>
+    </span>`;
+  btn.classList.remove("loading");
+  btn.disabled = false;
+  btn.querySelector(".btn-label").textContent = "Retry";
+}
+async function scorePost(platform, text) {
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": API_KEY,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true",
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 200,
+        messages: [{ role: "user", content: SCORE_PROMPT(platform, text) }],
+      }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const raw  = data.content[0].text.trim()
+      .replace(/^```json?\n?/, "").replace(/```$/, "");
+    return JSON.parse(raw);
+  } catch { return null; }
+}
+
+function totalScore(s) {
+  if (!s) return null;
+  return Object.values(s).reduce((a, d) => a + d.score, 0);
+}
+
+
+/* ──────────────────────────────────────────────────────────
+   RENDER OUTPUT CARDS
+   ────────────────────────────────────────────────────────── */
+function renderCards(combined) {
+  const grid    = document.getElementById("cards");
+  const entries = Object.entries(combined);
+
+  /* Grid columns based on count */
+  grid.style.gridTemplateColumns =
+    entries.length === 1 ? "1fr"
+    : entries.length === 2 ? "repeat(2, 1fr)"
+    : "repeat(auto-fit, minmax(280px, 1fr))";
+
+  grid.innerHTML = "";
+
+  const totals   = entries.map(([, d]) => totalScore(d.scores) ?? 0);
+  const maxScore = Math.max(...totals);
+
+  const SCORE_LABELS = {
+    emotional: "Emotional hook",
+    platform:  "Platform fit",
+    cta:       "CTA strength",
+    voice:     "Brand voice",
+    visual:    "Visual trigger",
+  };
+
+  // Default schedule time: tomorrow 9am
+  const defaultDt = (() => {
+    const d = new Date(); d.setDate(d.getDate()+1);
+    d.setHours(9,0,0,0);
+    return d.toISOString().slice(0,16);
+  })();
+
+  entries.forEach(([platform, data], idx) => {
+    const { text, hashtags, sound, scores, imagePrompt } = data;
+    const total  = totalScore(scores);
+    const isBest = total !== null && total === maxScore && entries.length > 1;
+
+    /* Score tier label */
+    let tier = "sp-mid", tierText = total !== null ? `${total}/100` : "";
+    if (isBest)          { tier = "sp-best"; tierText = "Best — post this"; }
+    else if (total >= 80){ tier = "sp-hi";  }
+    else if (total < 60) { tier = "sp-lo";  }
+
+    const subText = !isBest && total !== null
+      ? (total >= 80 ? "Strong" : total >= 60 ? "Good" : "Weak") : "";
+
+    const platKey = PLAT_KEYS[platform] || "";
+    const isConn  = CONNECTED[platKey];
+    const cid     = safeId(platform) + "_" + idx;
+    const isTT    = platform === "TikTok";
+
+    // Store card data for post modal
+    storeCardData(cid, platform, text, hashtags, sound);
+
+    // All platforms now use the preview modal — "Preview & Post" for all
+    const pubLabel   = "Preview & Post ↗";
+    const pubOnclick = `openPostModal('${cid}','${platform}')`;
+    const pubClass   = "";
+
+    /* Score bar rows */
+    const barsHtml = scores
+      ? Object.entries(scores).map(([k, v]) => `
+          <div class="sb-row">
+            <span class="sb-label">${SCORE_LABELS[k] || k}</span>
+            <div class="sb-track"><div class="sb-fill" style="width:${Math.round(v.score/v.max*100)}%"></div></div>
+            <span class="sb-val">${v.score}/${v.max}</span>
+          </div>`).join("")
+      : "";
+
+    /* Hashtag chips */
+    const hashHtml = (hashtags && hashtags.length)
+      ? `<div style="margin-top:.5rem;display:flex;flex-wrap:wrap;gap:.3rem">${
+          hashtags.map(h => `<span style="font-size:.68rem;font-weight:600;color:var(--accent);background:#FAF0E8;border:1px solid #DEC4A0;border-radius:20px;padding:.1rem .55rem">${h}</span>`).join("")
+        }</div>` : "";
+
+    /* TikTok sound suggestion */
+    const soundHtml = (isTT && sound)
+      ? `<div class="sound-chip"><svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13M9 18a3 3 0 11-6 0 3 3 0 016 0zm12-2a3 3 0 11-6 0 3 3 0 016 0z"/></svg> ${escHtml(sound)}</div>` : "";
+
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <div class="card-head">
+        <div class="card-plat">
+          <div class="card-pip" style="background:${PIPS[platform]||'#999'}"></div>
+          <span class="card-pname">${platform}</span>
+        </div>
+        ${total !== null ? `
+          <div class="score-pill ${tier}">
+            ${tierText}${subText ? ` <span class="sp-sub">${subText}</span>` : ""}
+          </div>` : ""}
+        <div class="card-btns">
+          <button class="btn-sm btn-copy" onclick="doCopy('${cid}',this)">Copy</button>
+          <button class="btn-sm btn-pub ${pubClass}" id="pub-${cid}" onclick="${pubOnclick}">
+            ${pubLabel}
+          </button>
+        </div>
+      </div>
+      <div class="card-body">
+        <p class="post-text" id="t-${cid}">${escHtml(text)}</p>
+        ${hashHtml}
+        ${soundHtml}
+      </div>
+      <div class="card-foot">
+        ${barsHtml ? `<div class="score-bars">${barsHtml}</div>` : ""}
+        <div class="foot-meta">
+          <span class="char-c">${text.length} chars</span>
+          ${isTT ? `<span class="limit l-ok">TikTok caption</span>` : ""}
+        </div>
+      </div>
+      <!-- Image section -->
+      <div class="img-section">
+        <div class="img-section-head">
+          <span class="img-section-label">
+            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            AI Image
+          </span>
+          <button class="btn-gen-img loading" id="imgbtn-${cid}" onclick="doGenerateImage('${cid}','${platform}',0)">
+            <div class="spin-xs"></div>
+            <span class="btn-label">Generating…</span>
+          </button>
+        </div>
+        <div class="img-prompt-row">
+          <textarea class="img-prompt-box" id="imgprompt-${cid}" rows="2">${escHtml(imagePrompt)}</textarea>
+        </div>
+        <div class="img-preview show" id="imgpreview-${cid}">
+          <div class="img-loading-overlay" id="imgoverlay-${cid}">
+            <div class="spin"></div>
+            <span>Generating image…</span>
+          </div>
+          <img id="imgel-${cid}" src="" alt="Generated post image" loading="lazy" crossorigin="anonymous"/>
+        </div>
+        <div class="img-actions" id="imgacts-${cid}" style="display:none">
+          <button class="btn-img-act" onclick="doGenerateImage('${cid}','${platform}',0)">↻ New variation</button>
+          <button class="btn-img-act" onclick="downloadImg('${cid}')">⬇ Download</button>
+          <button class="btn-img-act" onclick="copyImgPrompt('${cid}')">Copy prompt</button>
+        </div>
+      </div>
+      <!-- Preview & Post button -->
+      <button class="btn-preview-post" onclick="openPostModal('${cid}','${platform}')">
+        <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        Preview &amp; Post
+      </button>`;
+    grid.appendChild(card);
+  });
+}
+
+
+/* ──────────────────────────────────────────────────────────
+   COPY & PUBLISH
+   ────────────────────────────────────────────────────────── */
+function doCopy(id, btn) {
+  navigator.clipboard.writeText(document.getElementById("t-" + id).innerText);
+  btn.textContent = "Copied";
+  btn.classList.add("ok");
+  setTimeout(() => { btn.textContent = "Copy"; btn.classList.remove("ok"); }, 2000);
+}
+
+/* ──────────────────────────────────────────────────────────
+   CONNECT MODAL — shows token status from hardcoded keys
+   ────────────────────────────────────────────────────────── */
+function openModal() {
+  // Refresh status badges every time modal opens
+  setModalBadge("fb", !FB_TOKEN.includes("YOUR_"),      "Token set", "Not configured");
+  setModalBadge("ig", !IG_USER_ID.includes("YOUR_"),    "Token set", "Not configured");
+  setModalBadge("tt", !TIKTOK_TOKEN.includes("YOUR_"),  "Token set", "Not configured");
+  setModalBadge("li", !LINKEDIN_TOKEN.includes("YOUR_"),"Token set", "Not configured");
+
+  document.getElementById("modal-fb-status").textContent = FB_TOKEN.includes("YOUR_")    ? "Add FB_TOKEN in HTML file"      : "Page ID + Token configured";
+  document.getElementById("modal-ig-status").textContent = IG_USER_ID.includes("YOUR_")  ? "Add IG_USER_ID in HTML file"    : "Account ID + Token configured";
+  document.getElementById("modal-tt-status").textContent = TIKTOK_TOKEN.includes("YOUR_")? "Add TIKTOK_TOKEN in HTML file"  : "Access token configured";
+  document.getElementById("modal-li-status").textContent = LINKEDIN_TOKEN.includes("YOUR_")? "Add LINKEDIN_TOKEN in HTML file" : "Access token configured";
+
+  document.getElementById("modal").classList.add("open");
+}
+
+function setModalBadge(key, isOk, okLabel, errLabel) {
+  const badge = document.getElementById("modal-" + key + "-badge");
+  if (!badge) return;
+  badge.textContent  = isOk ? "✓ " + okLabel : errLabel;
+  badge.className    = "modal-status-badge " + (isOk ? "ok" : "err");
+}
+
+function closeModal() { document.getElementById("modal").classList.remove("open"); }
+
+document.getElementById("modal").addEventListener("click", e => {
+  if (e.target === document.getElementById("modal")) closeModal();
+});
+
+
+/* ──────────────────────────────────────────────────────────
+   PUBLISH — Facebook (Meta Graph API v19)
+   Free. Requires: pages_manage_posts permission.
+   Token: Page Access Token from developers.facebook.com/tools/explorer
+   ────────────────────────────────────────────────────────── */
+async function publishToFacebook(text, imageUrl) {
+  if (FB_TOKEN.includes("YOUR_") || FB_PAGE_ID.includes("YOUR_"))
+    throw new Error("Facebook token not configured. Open the HTML file and set FB_TOKEN and FB_PAGE_ID.");
+
+  let endpoint, body;
+  if (imageUrl && !imageUrl.startsWith("data:")) {
+    // Photo post with publicly accessible URL
+    endpoint = `https://graph.facebook.com/v19.0/${FB_PAGE_ID}/photos`;
+    body = new URLSearchParams({ url: imageUrl, caption: text, access_token: FB_TOKEN, published: "true" });
+  } else {
+    // Text-only post (base64 images can't be passed directly — use text post)
+    endpoint = `https://graph.facebook.com/v19.0/${FB_PAGE_ID}/feed`;
+    body = new URLSearchParams({ message: text, access_token: FB_TOKEN });
+  }
+
+  const res  = await fetch(endpoint, { method: "POST", body });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message);
+  return data;
+}
+
+
+/* ──────────────────────────────────────────────────────────
+   PUBLISH — Instagram (Meta Graph API v19, two-step)
+   Free. Requires: instagram_content_publish permission.
+   Account must be Instagram Business or Creator.
+   ────────────────────────────────────────────────────────── */
+async function publishToInstagram(caption, imageUrl) {
+  if (FB_TOKEN.includes("YOUR_") || IG_USER_ID.includes("YOUR_"))
+    throw new Error("Instagram not configured. Set FB_TOKEN and IG_USER_ID in the HTML file.");
+  if (!imageUrl || imageUrl.startsWith("data:"))
+    throw new Error("Instagram requires a publicly hosted image URL. Generate and use a hosted image.");
+
+  // Step 1 — create media container
+  const createRes = await fetch(`https://graph.facebook.com/v19.0/${IG_USER_ID}/media`, {
+    method: "POST",
+    body: new URLSearchParams({ image_url: imageUrl, caption, access_token: FB_TOKEN }),
+  });
+  const createData = await createRes.json();
+  if (createData.error) throw new Error(createData.error.message);
+
+  // Step 2 — publish container
+  const pubRes = await fetch(`https://graph.facebook.com/v19.0/${IG_USER_ID}/media_publish`, {
+    method: "POST",
+    body: new URLSearchParams({ creation_id: createData.id, access_token: FB_TOKEN }),
+  });
+  const pubData = await pubRes.json();
+  if (pubData.error) throw new Error(pubData.error.message);
+  return pubData;
+}
+
+
+/* ──────────────────────────────────────────────────────────
+   PUBLISH — TikTok (Content Posting API v2)
+   Free. Photo posts go as DRAFTS until your app is audited by TikTok.
+   Token: OAuth access token from developers.tiktok.com
+   Scope needed: video.publish (for video) / video.upload (for draft)
+   ────────────────────────────────────────────────────────── */
+async function publishToTikTok(caption, imageUrl) {
+  if (TIKTOK_TOKEN.includes("YOUR_"))
+    throw new Error("TikTok token not configured. Set TIKTOK_TOKEN in the HTML file.");
+
+  // TikTok photo post — posts as DRAFT until app audit is complete
+  const initRes = await fetch("https://open.tiktokapis.com/v2/post/publish/content/init/", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${TIKTOK_TOKEN}`,
+      "Content-Type": "application/json; charset=UTF-8",
+    },
+    body: JSON.stringify({
+      post_info: {
+        title: caption.slice(0, 150),
+        privacy_level: "SELF_ONLY", // draft — change to PUBLIC_TO_EVERYONE after app audit
+        disable_duet: false,
+        disable_comment: false,
+        disable_stitch: false,
+      },
+      source_info: {
+        source: "PULL_FROM_URL",
+        photo_images: [imageUrl],
+        photo_cover_index: 0,
+      },
+      post_mode: "DIRECT_POST",
+      media_type: "PHOTO",
+    }),
+  });
+
+  const initData = await initRes.json();
+  if (initData.error?.code && initData.error.code !== "ok")
+    throw new Error(initData.error.message || "TikTok API error");
+
+  return initData;
+}
+
+
+/* ──────────────────────────────────────────────────────────
+   PUBLISH — LinkedIn (Posts API v2)
+   Free. Token expires every 60 days — regenerate at:
+   linkedin.com/developers/tools/oauth/token-generator
+   Scope needed: w_member_social, openid, email
+   ────────────────────────────────────────────────────────── */
+async function publishToLinkedIn(text, imageUrl) {
+  if (LINKEDIN_TOKEN.includes("YOUR_") || LINKEDIN_URN.includes("YOUR_"))
+    throw new Error("LinkedIn not configured. Set LINKEDIN_TOKEN and LINKEDIN_URN in the HTML file.");
+
+  const body = {
+    author: LINKEDIN_URN,
+    commentary: text,
+    visibility: "PUBLIC",
+    distribution: { feedDistribution: "MAIN_FEED", targetEntities: [], thirdPartyDistributionChannels: [] },
+    lifecycleState: "PUBLISHED",
+    isReshareDisabledByAuthor: false,
+  };
+
+  // If we have a hosted image URL, attach it as an article link preview
+  if (imageUrl && !imageUrl.startsWith("data:")) {
+    body.content = {
+      article: {
+        source: imageUrl,
+        title: "Hearth & Brew",
+        description: text.slice(0, 200),
+      }
+    };
+  }
+
+  const res = await fetch("https://api.linkedin.com/rest/posts", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${LINKEDIN_TOKEN}`,
+      "Content-Type": "application/json",
+      "X-Restli-Protocol-Version": "2.0.0",
+      "LinkedIn-Version": "202401",
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (res.status === 201) return { success: true }; // LinkedIn returns 201 with no body on success
+  const data = await res.json().catch(() => ({}));
+  if (data.message || data.code) throw new Error(data.message || `LinkedIn error ${res.status}`);
+  if (!res.ok) throw new Error(`LinkedIn HTTP ${res.status}`);
+  return data;
+}
+
+
+/* ──────────────────────────────────────────────────────────
+   UNIFIED PUBLISH DISPATCHER
+   ────────────────────────────────────────────────────────── */
+async function doPublish(cid, platform, btn) {
+  const text   = cardData[cid]?.text || document.getElementById("t-" + cid).innerText;
+  const imgEl  = document.getElementById("imgel-" + cid);
+  const imgSrc = imgEl?.dataset?.blobSrc || (imgEl?.src && imgEl?.naturalWidth > 0 ? imgEl.src : null);
+
+  btn.textContent = "Publishing…";
+  btn.disabled = true;
+
+  try {
+    if (platform === "Facebook")  await publishToFacebook(text, imgSrc);
+    if (platform === "Instagram") await publishToInstagram(text, imgSrc);
+    if (platform === "TikTok")    await publishToTikTok(text, imgSrc);
+    if (platform === "LinkedIn")  await publishToLinkedIn(text, imgSrc);
+    btn.textContent = "Published ✓";
+    btn.classList.add("done");
+  } catch (err) {
+    btn.textContent = "Failed — retry";
+    btn.disabled = false;
+    alert("Publish failed: " + (err.message || "Unknown error.\nCheck your token and permissions."));
+  }
+}
+
+
+/* ──────────────────────────────────────────────────────────
+   POST PREVIEW MODAL
+   ────────────────────────────────────────────────────────── */
+
+// Store card data keyed by cid for the modal to reference
+const cardData = {};
+
+// Called from renderCards — save card data for modal
+function storeCardData(cid, platform, text, hashtags, sound) {
+  cardData[cid] = { platform, text, hashtags: hashtags || [], sound: sound || null };
+}
+
+function openPostModal(cid, platform) {
+  const d = cardData[cid];
+  if (!d) return;
+
+  const isTT   = platform === "TikTok";
+  const isConn = CONNECTED[PLAT_KEYS[platform] || ""] || false;
+
+  // Populate modal content
+  document.getElementById("pm-pip").style.background   = PIPS[platform] || "#999";
+  document.getElementById("pm-pname").textContent      = platform;
+  document.getElementById("pm-text").textContent       = d.text;
+  document.getElementById("pm-now-plat").textContent   = platform;
+
+  // Hashtags
+  const hashEl = document.getElementById("pm-hashtags");
+  hashEl.innerHTML = d.hashtags.map(h =>
+    `<span class="pm-hash-chip">${escHtml(h)}</span>`).join("");
+
+  // Sound
+  const soundWrap = document.getElementById("pm-sound-wrap");
+  const soundEl   = document.getElementById("pm-sound");
+  if (isTT && d.sound) {
+    soundWrap.style.display = "block";
+    soundEl.innerHTML = `🎵 ${escHtml(d.sound)}`;
+  } else {
+    soundWrap.style.display = "none";
+  }
+
+  // Image — HF returns blob URL stored in dataset.blobSrc
+  const imgEl   = document.getElementById("imgel-" + cid);
+  const hasImg  = imgEl && (imgEl.dataset.blobSrc || (imgEl.src && imgEl.naturalWidth > 0));
+  const pmImg   = document.getElementById("pm-img");
+  const pmImgW  = document.getElementById("pm-img-wrap");
+  const pmNoImg = document.getElementById("pm-no-img");
+  if (hasImg) {
+    pmImg.src = imgEl.dataset.blobSrc || imgEl.src;
+    pmImgW.style.display  = "flex";
+    pmNoImg.style.display = "none";
+  } else {
+    pmImgW.style.display  = "none";
+    pmNoImg.style.display = platform === "Instagram" ? "block" : "none";
+  }
+
+  // Schedule section
+  const schedSection = document.getElementById("pm-sched-section");
+  const ttPanel      = document.getElementById("pm-tt-panel");
+
+  // TikTok now uses API too — only show manual panel if token not set
+  const ttHasToken = !TIKTOK_TOKEN.includes("YOUR_");
+  if (isTT && !ttHasToken) {
+    schedSection.style.display = "none";
+    ttPanel.style.display = "block";
+    navigator.clipboard.writeText(d.text).catch(() => {});
+  } else {
+    schedSection.style.display = "block";
+    ttPanel.style.display = "none";
+    const btn = document.getElementById("pm-post-btn");
+    const lbl = document.getElementById("pm-post-btn-label");
+    btn.classList.remove("done");
+    btn.disabled = false;
+    lbl.textContent = isConn ? "Publish Now" : "Token Not Configured";
+    btn.disabled = !isConn;
+    if (!isConn) {
+      document.getElementById("pm-now-note").innerHTML =
+        `To publish, open the HTML file and add your <strong>${platform}</strong> token in the API KEYS section.`;
+    } else {
+      const note = platform === "TikTok"
+        ? `Will post as <strong>draft</strong> on TikTok until your app passes TikTok's audit.`
+        : platform === "LinkedIn"
+        ? `Token expires every 60 days — regenerate at <a href="https://www.linkedin.com/developers/tools/oauth/token-generator" target="_blank" style="color:var(--accent)">LinkedIn OAuth tools</a>.`
+        : `Click below to publish immediately to <strong>${platform}</strong>.`;
+      document.getElementById("pm-now-note").innerHTML = note;
+    }
+    const qbtn = document.getElementById("pm-queue-btn");
+    const qlbl = document.getElementById("pm-queue-btn-label");
+    qbtn.classList.remove("done");
+    qbtn.disabled = false;
+    qlbl.textContent = "Add to Schedule Queue";
+    const d2 = new Date(); d2.setDate(d2.getDate()+1); d2.setHours(9,0,0,0);
+    document.getElementById("pm-dt-inp").value = d2.toISOString().slice(0,16);
+    document.getElementById("pm-dt-inp").min   = new Date().toISOString().slice(0,16);
+    setPmTab("now");
+  }
+
+  // Store current cid on modal
+  document.getElementById("post-modal").dataset.cid      = cid;
+  document.getElementById("post-modal").dataset.platform = platform;
+  document.getElementById("post-modal").classList.add("open");
+}
+
+function closePostModal() {
+  document.getElementById("post-modal").classList.remove("open");
+}
+
+document.getElementById("post-modal").addEventListener("click", e => {
+  if (e.target === document.getElementById("post-modal")) closePostModal();
+});
+
+function setPmTab(tab) {
+  document.getElementById("pm-tab-now").classList.toggle("active", tab === "now");
+  document.getElementById("pm-tab-later").classList.toggle("active", tab === "later");
+  document.getElementById("pm-now-panel").style.display   = tab === "now"   ? "flex"  : "none";
+  document.getElementById("pm-later-panel").classList.toggle("show", tab === "later");
+}
+
+async function pmPostNow() {
+  const modal    = document.getElementById("post-modal");
+  const cid      = modal.dataset.cid;
+  const platform = modal.dataset.platform;
+  const btn      = document.getElementById("pm-post-btn");
+  const lbl      = document.getElementById("pm-post-btn-label");
+  const text     = cardData[cid]?.text || "";
+  const imgEl    = document.getElementById("imgel-" + cid);
+  const imgSrc   = imgEl?.dataset?.blobSrc || (imgEl?.src && imgEl?.naturalWidth > 0 ? imgEl.src : null);
+
+  btn.disabled = true;
+  lbl.textContent = "Publishing…";
+
+  try {
+    if (platform === "Facebook")  await publishToFacebook(text, imgSrc);
+    if (platform === "Instagram") await publishToInstagram(text, imgSrc);
+    if (platform === "TikTok")    await publishToTikTok(text, imgSrc);
+    if (platform === "LinkedIn")  await publishToLinkedIn(text, imgSrc);
+    btn.classList.add("done");
+    lbl.textContent = "✓ Published!";
+    setTimeout(() => closePostModal(), 1800);
+  } catch (err) {
+    btn.disabled = false;
+    lbl.textContent = "Retry";
+    alert("Publish failed: " + (err.message || "Unknown error."));
+  }
+}
+
+function pmAddToQueue() {
+  const modal    = document.getElementById("post-modal");
+  const cid      = modal.dataset.cid;
+  const platform = modal.dataset.platform;
+  const dtVal    = document.getElementById("pm-dt-inp").value;
+  const text     = cardData[cid]?.text || "";
+  const btn      = document.getElementById("pm-queue-btn");
+  const lbl      = document.getElementById("pm-queue-btn-label");
+
+  if (!dtVal) { alert("Please pick a date and time."); return; }
+
+  const dt  = new Date(dtVal);
+  const id  = "sq" + Date.now();
+  scheduledPosts.push({ id, platform, text, dt });
+
+  btn.classList.add("done");
+  lbl.textContent = "✓ Added to Queue";
+  btn.disabled = true;
+
+  renderQueue();
+  setTimeout(() => closePostModal(), 1400);
+}
+
+function pmOpenTikTok() {
+  window.open("https://www.tiktok.com/upload", "_blank");
+}
+
+function renderQueue() {
+  const panel  = document.getElementById("queue-panel");
+  const list   = document.getElementById("queue-list");
+  const empty  = document.getElementById("queue-empty");
+  const badge  = document.getElementById("queue-badge");
+
+  panel.style.display = "block";
+  badge.textContent = scheduledPosts.length + " post" + (scheduledPosts.length !== 1 ? "s" : "");
+
+  if (scheduledPosts.length === 0) {
+    empty.style.display = "block";
+    list.innerHTML = "";
+    return;
+  }
+  empty.style.display = "none";
+
+  // Sort by time
+  const sorted = [...scheduledPosts].sort((a,b) => a.dt - b.dt);
+  list.innerHTML = "";
+
+  sorted.forEach(item => {
+    const now = new Date();
+    const diff = item.dt - now;
+    const isNow = diff < 60000;
+    const timeLabel = isNow
+      ? "Now"
+      : item.dt.toLocaleDateString([], { month:"short", day:"numeric" }) + " · " +
+        item.dt.toLocaleTimeString([], { hour:"2-digit", minute:"2-digit" });
+
+    const row = document.createElement("div");
+    row.className = "q-item";
+    row.id = "qi-" + item.id;
+    row.innerHTML = `
+      <div class="q-pip" style="background:${PIPS[item.platform]||'#999'}"></div>
+      <div class="q-meta">
+        <div class="q-platform">${item.platform}</div>
+        <div class="q-text">${escHtml(item.text)}</div>
+      </div>
+      <div class="q-time">
+        <span class="q-ts ${isNow ? 'now-label' : ''}">${timeLabel}</span>
+        <button class="q-del" onclick="removeFromQueue('${item.id}')" title="Remove">×</button>
+      </div>`;
+    list.appendChild(row);
+  });
+}
+
+function removeFromQueue(id) {
+  scheduledPosts = scheduledPosts.filter(p => p.id !== id);
+  renderQueue();
+  if (scheduledPosts.length === 0) {
+    document.getElementById("queue-panel").style.display = "none";
+  }
+}
+
+
+/* ──────────────────────────────────────────────────────────
+   SESSION HISTORY
+   ────────────────────────────────────────────────────────── */
+function addHistory(contentType, postsRaw) {
+  genCount++;
+  document.getElementById("history").style.display = "flex";
+  document.getElementById("hist-count").textContent =
+    genCount + " generation" + (genCount > 1 ? "s" : "");
+
+  const id   = "h" + Date.now();
+  const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+  // postsRaw can be { platform: { text, hashtags, sound } } or legacy { platform: string }
+  const body = Object.entries(postsRaw).map(([p, d]) => {
+    const t = typeof d === "string" ? d : d.text;
+    return `<div class="hist-plat">
+      <div class="hist-pname">${p}</div>
+      <div class="hist-pt">${escHtml(t)}</div>
+    </div>`;
+  }).join("");
+
+  const row = document.createElement("div");
+  row.className = "hist-item";
+  row.innerHTML = `
+    <button class="hist-btn" onclick="toggleHist('${id}')" type="button">
+      <div class="hist-l">
+        <span class="hist-ts">${time}</span>
+        <span class="hist-lbl">${escHtml(contentType)}</span>
+      </div>
+      <svg class="hist-arr" id="ha-${id}" viewBox="0 0 12 8" fill="none"
+           stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="1 1.5 6 6.5 11 1.5"/>
+      </svg>
+    </button>
+    <div class="hist-body" id="${id}">${body}</div>`;
+  document.getElementById("hist-list").insertBefore(
+    row, document.getElementById("hist-list").firstChild
+  );
+}
+
+function toggleHist(id) {
+  const body  = document.getElementById(id);
+  const arrow = document.getElementById("ha-" + id);
+  body.classList.toggle("open");
+  arrow.classList.toggle("open", body.classList.contains("open"));
+}
+
+
+/* ──────────────────────────────────────────────────────────
+   UTILITIES
+   ────────────────────────────────────────────────────────── */
+function downloadImg(cid) {
+  const img = document.getElementById("imgel-" + cid);
+  const src = img?.dataset?.blobSrc || img?.src;
+  if (!src) return;
+  const a = document.createElement("a");
+  a.href     = src;
+  a.download = "hearth-brew-post.jpg";
+  a.click();
+}
+
+function copyImgPrompt(cid) {
+  const box = document.getElementById("imgprompt-" + cid);
+  navigator.clipboard.writeText(box.value);
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;")
+          .replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+function safeId(s) { return s.replace(/[^a-zA-Z0-9]/g,"_"); }
+</script>
+</body>
+</html>
