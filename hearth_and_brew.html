@@ -2167,22 +2167,51 @@ const RULES = {
 - On a new line after the hashtags append ONLY this JSON: {"hashtags":["#FoodTok",...],"sound":"Suggest a specific trending TikTok audio/song — be specific with artist and track name"}`,
 };
 
-/* ── Scoring prompt (from prompts.py, adapted to return JSON) ── */
-const SCORE_PROMPT = (platform, text) =>
-`You are a brand quality reviewer for Hearth & Brew, a cozy independent coffee shop in Edmonds, WA.
+/* ── Scoring prompt — platform-aware so each criterion scores against the actual rules ── */
+const SCORE_PLATFORM_RULES = {
+  "Instagram": `Format rules for this post:
+- Caption: 2–4 sentences, visual-first and inviting
+- Emojis: 1–2 maximum, placed naturally (not at the start of every line)
+- Hashtags: 4–6 local-discovery tags (e.g. #EdmondsWA #PNWCoffee #CoffeeShop)
+- Tone: warm, slightly poetic — make someone want to be there right now`,
+
+  "Facebook": `Format rules for this post:
+- Length: 3–5 sentences, slightly more informational than other platforms
+- Must include a soft call-to-action (stop by, come find us, grab one before they're gone, etc.)
+- No hashtags
+- Tone: friendly and welcoming — appeals to families, retirees, and longtime Edmonds locals`,
+
+  "TikTok": `Format rules for this post:
+- Length: 50–80 words
+- Must open with a high-energy hook — the very first line should be impossible to scroll past
+- Trend-aware, conversational, Gen-Z adjacent tone
+- 3–5 hashtags (#FoodTok #CoffeeTok #SmallBusiness style)
+- Ends with a suggested video concept in parentheses — this is an intentional format element, not awkward copy; do not penalise it
+- For Specificity on TikTok: reward a strong, curiosity-driving hook and trend-aware angle, not just Edmonds name-drops`,
+};
+
+const SCORE_PROMPT = (platform, text) => {
+  const rules = SCORE_PLATFORM_RULES[platform] || `Platform: ${platform}`;
+  return `You are a brand quality reviewer for Hearth & Brew, a cozy independent coffee shop in Edmonds, WA.
+
+${rules}
 
 Score this ${platform} post on each dimension from 1 to 5:
 
 1. On-Brand Voice (1–5): Does it sound like a warm, witty local friend? Genuine and casual — not stiff or corporate?
-2. Platform Fit (1–5): Is the length, format, tone, and hashtag use right for ${platform}?
-3. Specificity (1–5): Does it mention a real menu item, shop feature, or Edmonds/PNW detail? Generic = low score.
-4. No Anti-Patterns (1–5): Zero corporate jargon? No "curated", "artisanal", "elevated", "crafted experience", "bespoke"?
-5. Engagement Pull (1–5): Would an Edmonds local genuinely stop scrolling — does it feel real and inviting?
+2. Platform Fit (1–5): Does it follow the format rules above — correct length, structure, emoji use, hashtag count, tone, and any required elements (CTA, hook, etc.)?
+3. Specificity (1–5): ${platform === "TikTok"
+    ? "Does it open with a compelling hook and feel trend-relevant? Does it reference something real (a menu item, the shop, a PNW moment) rather than staying purely generic?"
+    : "Does it mention a real Hearth & Brew menu item, shop feature, or Edmonds/PNW detail? Generic = low score."}
+4. No Anti-Patterns (1–5): Zero corporate jargon? No "curated", "artisanal", "elevated", "crafted experience", "bespoke", or anything that sounds like ad-agency copy?
+5. Engagement Pull (1–5): Would an Edmonds local genuinely stop scrolling — does it feel real, warm, and inviting?
 
-Post: "${text}"
+Post:
+"${text}"
 
 Return ONLY valid JSON, no markdown fences:
 {"voice":{"score":0,"max":5},"platform":{"score":0,"max":5},"specificity":{"score":0,"max":5},"nopatterns":{"score":0,"max":5},"engagement":{"score":0,"max":5},"verdict":"Strong Post","improvement":"One specific actionable suggestion"}`;
+};
 
 const CONTENT_TYPES = [
   "New seasonal drink launch",
