@@ -392,23 +392,31 @@ textarea.inp {
 .et-name { font-size: .8rem; font-weight: 600; color: var(--ink); }
 .et-desc { font-size: .68rem; color: var(--ink-3); margin-top: .2rem; line-height: 1.4; }
 
-/* ── Cards grid ── */
+/* ── Cards grid — horizontal flex ── */
 #cards {
-  display: grid;
-  gap: 1rem;
-  align-content: start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  align-items: flex-start;
 }
 
-/* Output card */
+/* Card column wrapper */
 .card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r);
-  overflow: hidden;
-  box-shadow: var(--sh);
-  transition: box-shadow .2s, transform .18s;
+  width: 360px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: .65rem;
 }
-.card:hover { box-shadow: var(--sh-h); transform: translateY(-1px); }
+
+/* Card top row: score pill + action buttons */
+.card-top-row {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+}
+.card-top-row .score-pill { flex: 1; min-width: 0; }
+.card-top-row .spacer { flex: 1; }
 
 .card-head {
   display: flex;
@@ -963,6 +971,223 @@ textarea.inp {
 }
 .sound-chip svg { width: 9px; height: 9px; fill: #EE1D52; }
 
+/* ═══════════════════════════════════════════════════════
+   PLATFORM MOCKUPS
+   ═══════════════════════════════════════════════════════ */
+
+/* Shared mockup frame */
+.mock-frame {
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0,0,0,.15);
+  width: 100%;
+}
+
+/* Override img-preview defaults inside mockups */
+.mock-frame .img-preview {
+  border-radius: 0;
+  aspect-ratio: unset;
+  max-width: 100%;
+  background: #d8d0c8;
+}
+.mock-frame .img-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Shared avatar circle */
+.mock-av {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #C0692A, #7A3D15);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: .5rem; font-weight: 800;
+  flex-shrink: 0;
+  letter-spacing: .02em;
+}
+.mock-dots {
+  font-size: .9rem; color: #888; cursor: default;
+  letter-spacing: 2px; padding: .2rem .25rem;
+}
+
+/* Image prompt controls below mockup */
+.mock-img-controls { display: flex; flex-direction: column; gap: .4rem; }
+.mock-img-prompt-row { display: flex; gap: .4rem; align-items: flex-start; }
+.mock-img-prompt-row .img-prompt-box { flex: 1; }
+
+/* Score panel below mockup */
+.score-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: .65rem .9rem;
+}
+.card-foot-bare {
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+/* ══ INSTAGRAM ════════════════════════════════════════ */
+.mock-ig {
+  background: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+.mock-ig-header {
+  display: flex; align-items: center;
+  padding: .55rem .75rem; gap: .5rem;
+}
+.ig-av-ring {
+  width: 36px; height: 36px; border-radius: 50%; padding: 2px;
+  background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+  flex-shrink: 0;
+}
+.ig-av-inner {
+  width: 100%; height: 100%; border-radius: 50%;
+  border: 2px solid #fff;
+  background: linear-gradient(135deg, #C0692A, #7A3D15);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: .48rem; font-weight: 800;
+}
+.mock-ig-uname { flex: 1; font-size: .78rem; font-weight: 700; color: #262626; }
+.mock-ig-imgslot { width: 100%; aspect-ratio: 1/1; }
+.mock-ig-imgslot .img-preview { width: 100%; height: 100%; }
+.mock-ig-actions {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: .45rem .75rem .2rem;
+}
+.mock-ig-left { display: flex; gap: .65rem; align-items: center; }
+.mock-ig-icon { width: 24px; height: 24px; cursor: default; display: block; }
+.mock-ig-icon svg { width: 24px; height: 24px; display: block; }
+.mock-ig-body { padding: .1rem .75rem .7rem; }
+.mock-ig-likes { font-size: .75rem; font-weight: 700; color: #262626; margin-bottom: .25rem; }
+.mock-ig-caption { font-size: .73rem; color: #262626; line-height: 1.55; }
+.mock-ig-capun { font-weight: 700; margin-right: .25rem; }
+.mock-ig-tags { font-size: .72rem; color: #00376B; margin-top: .2rem; line-height: 1.6; }
+.mock-ig-time { font-size: .6rem; color: #8e8e8e; text-transform: uppercase; letter-spacing: .05em; margin-top: .35rem; }
+
+/* ══ FACEBOOK ════════════════════════════════════════ */
+.mock-fb {
+  background: #fff;
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+.mock-fb-header {
+  display: flex; align-items: flex-start;
+  padding: .65rem .75rem .35rem; gap: .5rem;
+}
+.mock-fb-info { flex: 1; }
+.mock-fb-name { font-size: .78rem; font-weight: 700; color: #050505; }
+.mock-fb-meta { font-size: .66rem; color: #65676B; margin-top: .08rem; }
+.mock-fb-text {
+  padding: 0 .75rem .5rem;
+  font-size: .77rem; color: #050505; line-height: 1.65; white-space: pre-wrap;
+}
+.mock-fb-imgslot { width: 100%; aspect-ratio: 16/9; }
+.mock-fb-imgslot .img-preview { width: 100%; height: 100%; }
+.mock-fb-reactions {
+  display: flex; justify-content: space-between;
+  padding: .35rem .75rem;
+  font-size: .7rem; color: #65676B;
+  border-bottom: 1px solid #E4E6EB;
+}
+.mock-fb-actions { display: flex; padding: .1rem .5rem; gap: 0; }
+.mock-fb-btn {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  gap: .3rem; padding: .42rem .2rem;
+  font-size: .74rem; font-weight: 700; color: #65676B;
+  background: none; border: none; border-radius: 6px;
+  cursor: default; font-family: inherit;
+}
+.mock-fb-btn:hover { background: #F2F2F2; }
+
+/* ══ TIKTOK ════════════════════════════════════════ */
+.mock-tt {
+  background: #000;
+  font-family: system-ui, sans-serif;
+}
+.mock-tt-inner {
+  position: relative;
+  aspect-ratio: 9/16;
+  overflow: hidden;
+}
+.mock-tt-bgslot {
+  position: absolute; inset: 0;
+}
+.mock-tt-bgslot .img-preview {
+  position: absolute; inset: 0;
+}
+.mock-tt-inner::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,.78) 35%, rgba(0,0,0,.1) 65%, transparent 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+.mock-tt-overlay {
+  position: absolute; inset: 0;
+  z-index: 2;
+  display: flex; align-items: flex-end;
+}
+.mock-tt-bottom {
+  flex: 1; padding: .75rem .75rem 1rem;
+  max-width: calc(100% - 60px);
+}
+.mock-tt-username { font-size: .8rem; font-weight: 700; color: #fff; margin-bottom: .2rem; }
+.mock-tt-caption {
+  font-size: .72rem; color: rgba(255,255,255,.92); line-height: 1.5;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+.mock-tt-hashtags { font-size: .71rem; color: #fff; font-weight: 600; margin-top: .2rem; }
+.mock-tt-sound {
+  display: flex; align-items: center; gap: .3rem;
+  font-size: .68rem; color: rgba(255,255,255,.8); margin-top: .4rem;
+}
+.mock-tt-sidebar {
+  position: absolute; right: .5rem; bottom: 1rem;
+  display: flex; flex-direction: column; align-items: center; gap: 1rem;
+}
+.mock-tt-av { position: relative; margin-bottom: .3rem; }
+.mock-tt-av-circle {
+  width: 42px; height: 42px; border-radius: 50%;
+  border: 2px solid #fff;
+  background: linear-gradient(135deg, #C0692A, #7A3D15);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: .48rem; font-weight: 800;
+}
+.mock-tt-plus-badge {
+  position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
+  background: #EE1D52; color: #fff; width: 18px; height: 18px;
+  border-radius: 50%; font-size: .72rem; line-height: 18px; text-align: center;
+  border: 2px solid #000;
+}
+.mock-tt-side-item { display: flex; flex-direction: column; align-items: center; gap: .1rem; }
+.mock-tt-side-icon { font-size: 1.4rem; color: #fff; }
+.mock-tt-side-count { font-size: .63rem; color: #fff; font-weight: 600; }
+.mock-tt-bar {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 52px; background: #000;
+  display: flex; align-items: center; justify-content: space-around;
+  border-top: 1px solid #222; z-index: 3;
+}
+.mock-tt-bar-item {
+  display: flex; flex-direction: column; align-items: center; gap: .1rem;
+  font-size: .52rem; color: rgba(255,255,255,.55);
+}
+.mock-tt-bar-icon { font-size: 1.1rem; }
+.mock-tt-bar-item.active { color: #fff; }
+.mock-tt-bar-add {
+  width: 36px; height: 26px; border-radius: 6px;
+  background: linear-gradient(to right, #69C9D0 50%, #EE1D52 50%);
+  display: flex; align-items: center; justify-content: center;
+}
+.mock-tt-bar-add-inner {
+  width: 22px; height: 22px; background: #fff; border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .9rem; font-weight: 700; color: #000;
+}
+
+
 /* ── Responsive ── */
 @media (max-width: 768px) {
   html, body { overflow: auto; height: auto; }
@@ -995,10 +1220,6 @@ textarea.inp {
     <div class="acc-chip" onclick="openModal()" title="Manage TikTok">
       <div class="acc-dot" id="dot-tt"></div>
       <span class="acc-name" id="lbl-tt">TikTok</span>
-    </div>
-    <div class="acc-chip" onclick="openModal()" title="Manage LinkedIn">
-      <div class="acc-dot" id="dot-li"></div>
-      <span class="acc-name" id="lbl-li">LinkedIn</span>
     </div>
   </div>
 </header>
@@ -1076,11 +1297,6 @@ textarea.inp {
           <span class="plat-tname">TikTok</span>
         </label>
 
-        <label class="plat-toggle" id="pt-LinkedIn">
-          <input type="checkbox" value="LinkedIn" onchange="togglePlat(this,'LinkedIn')">
-          <div class="plat-pip" style="background:#0A66C2"></div>
-          <span class="plat-tname">LinkedIn</span>
-        </label>
 
       </div>
     </div>
@@ -1233,19 +1449,6 @@ textarea.inp {
       <span class="modal-status-badge" id="modal-tt-badge">—</span>
     </div>
 
-    <!-- LinkedIn -->
-    <div class="soc-row">
-      <div class="soc-left">
-        <div class="soc-icon" style="background:#0A66C2">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
-        </div>
-        <div>
-          <div class="soc-name">LinkedIn</div>
-          <div class="soc-handle" id="modal-li-status">Checking…</div>
-        </div>
-      </div>
-      <span class="modal-status-badge" id="modal-li-badge">—</span>
-    </div>
 
     <div style="margin-top:.4rem;padding:.7rem .9rem;background:#FAF4ED;border:1px solid #DEC4A0;border-radius:8px;font-size:.73rem;color:#7A5028;line-height:1.6">
       To update tokens, open the HTML file in a text editor and find the <strong>📱 SOCIAL MEDIA TOKENS</strong> section near the top of the &lt;script&gt; tag.
@@ -1356,7 +1559,7 @@ textarea.inp {
    ============================================================ */
 
 // ***** ADD YOUR ANTHROPIC API KEY BELOW *****
-const API_KEY = "API HERE";
+const API_KEY = "YOUR_ANTHROPIC_API_KEY_HERE";
 
 // ***** ADD YOUR OPENAI API KEY BELOW (for DALL-E 3 image generation) *****
 const OPENAI_KEY = "YOUR_OPENAI_API_KEY_HERE";
@@ -1373,11 +1576,6 @@ const OPENAI_KEY = "YOUR_OPENAI_API_KEY_HERE";
    → Register app at: https://developers.tiktok.com
    → Get OAuth access token with scope: video.publish, video.upload
 
-   LINKEDIN (LinkedIn Developer Portal — free, token expires every 60 days)
-   → Register app at: https://www.linkedin.com/developers/apps
-   → Add products: "Share on LinkedIn" + "Sign In with LinkedIn using OpenID Connect"
-   → Generate token at: https://www.linkedin.com/developers/tools/oauth/token-generator
-   → Scopes needed: w_member_social, openid, email
    ============================================================ */
 
 // ***** ADD YOUR FACEBOOK PAGE ACCESS TOKEN BELOW *****
@@ -1393,9 +1591,6 @@ const IG_USER_ID = "YOUR_INSTAGRAM_BUSINESS_ACCOUNT_ID_HERE";
 const TIKTOK_TOKEN = "YOUR_TIKTOK_ACCESS_TOKEN_HERE";
 
 // ***** ADD YOUR LINKEDIN ACCESS TOKEN BELOW (expires in 60 days) *****
-const LINKEDIN_TOKEN = "YOUR_LINKEDIN_ACCESS_TOKEN_HERE";
-// ***** ADD YOUR LINKEDIN PERSON URN BELOW (e.g. urn:li:person:XXXXXXX) *****
-const LINKEDIN_URN   = "urn:li:person:YOUR_PERSON_URN_HERE";
 
 /* ============================================================ */
 
@@ -1408,7 +1603,6 @@ document.addEventListener("DOMContentLoaded", () => {
   if (FB_TOKEN && !FB_TOKEN.includes("YOUR_")) { CONNECTED.fb = true; updateChip("fb", "Facebook"); }
   if (IG_USER_ID && !IG_USER_ID.includes("YOUR_")) { CONNECTED.ig = true; updateChip("ig", "Instagram"); }
   if (TIKTOK_TOKEN && !TIKTOK_TOKEN.includes("YOUR_")) { CONNECTED.tt = true; updateChip("tt", "TikTok"); }
-  if (LINKEDIN_TOKEN && !LINKEDIN_TOKEN.includes("YOUR_")) { CONNECTED.li = true; updateChip("li", "LinkedIn"); }
 });
 
 function updateChip(key, label) {
@@ -1422,7 +1616,6 @@ const PIPS = {
   "Instagram": "#E1652A",
   "Facebook":  "#4A6ED9",
   "TikTok":    "#EE1D52",
-  "LinkedIn":  "#0A66C2",
 };
 
 const RULES = {
@@ -1432,8 +1625,6 @@ const RULES = {
     "100-180 words, community-focused storytelling. Warm and informational. One friendly question at the end to invite comments. No hashtags. Append: {\"hashtags\":[],\"sound\":null}",
   "TikTok":
     "50-80 words. High-energy hook as the opening line (make it impossible to scroll past). Trend-aware, conversational, Gen-Z adjacent. 3-5 hashtags (#FoodTok #CoffeeTok #SmallBusiness style). End with a suggested brief video concept in parentheses. Append: {\"hashtags\":[\"#FoodTok\",...],\"sound\":\"Suggest a specific trending TikTok audio/song that fits this vibe — be specific with artist and track name\"}",
-  "LinkedIn":
-    "120-200 words. Professional yet warm storytelling tone. Lead with an insight or story. Business-minded framing (community, local economy, craft). One thoughtful question at the end. No hashtags. Append: {\"hashtags\":[],\"sound\":null}",
 };
 
 const BRAND =
@@ -1448,8 +1639,8 @@ Caption: "${text}"
 Return ONLY valid JSON, no fences:
 {"emotional":{"score":0,"max":25},"platform":{"score":0,"max":20},"cta":{"score":0,"max":20},"voice":{"score":0,"max":20},"visual":{"score":0,"max":15}}`;
 
-const CONNECTED = { ig: false, fb: false, tt: false, li: false };
-const PLAT_KEYS = { "Instagram": "ig", "Facebook": "fb", "TikTok": "tt", "LinkedIn": "li" };
+const CONNECTED = { ig: false, fb: false, tt: false };
+const PLAT_KEYS = { "Instagram": "ig", "Facebook": "fb", "TikTok": "tt" };
 
 let genCount = 0;
 let scheduledPosts = [];
@@ -1795,18 +1986,123 @@ function totalScore(s) {
 
 
 /* ──────────────────────────────────────────────────────────
+   BUILD PLATFORM MOCKUP HTML
+   ────────────────────────────────────────────────────────── */
+function buildMockup(platform, cid, text, hashtags, sound, imagePrompt) {
+  const imgSlot = `
+    <div class="img-preview show" id="imgpreview-${cid}">
+      <div class="img-loading-overlay" id="imgoverlay-${cid}">
+        <div class="spin"></div><span>Generating image…</span>
+      </div>
+      <img id="imgel-${cid}" src="" alt="Post image" loading="lazy" crossorigin="anonymous"/>
+    </div>`;
+
+  const hashText = hashtags && hashtags.length ? hashtags.join(' ') : '';
+  const cap120   = text.length > 160 ? text.slice(0, 160) + '…' : text;
+
+  if (platform === 'Instagram') {
+    return `
+    <div class="mock-frame mock-ig">
+      <div class="mock-ig-header">
+        <div class="ig-av-ring"><div class="ig-av-inner">H&B</div></div>
+        <span class="mock-ig-uname">hearthandbrew</span>
+        <span class="mock-dots">···</span>
+      </div>
+      <div class="mock-ig-imgslot">${imgSlot}</div>
+      <div class="mock-ig-actions">
+        <div class="mock-ig-left">
+          <span class="mock-ig-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#262626" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
+          <span class="mock-ig-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#262626" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+          <span class="mock-ig-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#262626" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></span>
+        </div>
+        <span class="mock-ig-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#262626" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></span>
+      </div>
+      <div class="mock-ig-body">
+        <div class="mock-ig-likes">1,284 likes</div>
+        <div class="mock-ig-caption"><span class="mock-ig-capun">hearthandbrew</span> ${escHtml(cap120)}</div>
+        ${hashText ? `<div class="mock-ig-tags">${escHtml(hashText)}</div>` : ''}
+        <div class="mock-ig-time">Just now</div>
+      </div>
+    </div>`;
+  }
+
+  if (platform === 'Facebook') {
+    return `
+    <div class="mock-frame mock-fb">
+      <div class="mock-fb-header">
+        <div class="mock-av">H&B</div>
+        <div class="mock-fb-info">
+          <div class="mock-fb-name">Hearth &amp; Brew</div>
+          <div class="mock-fb-meta">Just now · 🌐</div>
+        </div>
+        <span class="mock-dots">···</span>
+      </div>
+      <div class="mock-fb-text">${escHtml(text)}</div>
+      <div class="mock-fb-imgslot">${imgSlot}</div>
+      <div class="mock-fb-reactions">
+        <span>👍 ❤️ 😮 &nbsp;24</span>
+        <span>3 comments · 1 share</span>
+      </div>
+      <div class="mock-fb-actions">
+        <button class="mock-fb-btn">👍 Like</button>
+        <button class="mock-fb-btn">💬 Comment</button>
+        <button class="mock-fb-btn">↗ Share</button>
+      </div>
+    </div>`;
+  }
+
+  if (platform === 'TikTok') {
+    return `
+    <div class="mock-frame mock-tt">
+      <div class="mock-tt-inner">
+        <div class="mock-tt-bgslot">${imgSlot}</div>
+        <div class="mock-tt-overlay">
+          <div class="mock-tt-bottom">
+            <div class="mock-tt-username">@hearthandbrew</div>
+            <div class="mock-tt-caption">${escHtml(cap120)}</div>
+            ${hashText ? `<div class="mock-tt-hashtags">${escHtml(hashText)}</div>` : ''}
+            ${sound ? `<div class="mock-tt-sound">♫ ${escHtml(sound)}</div>` : ''}
+          </div>
+          <div class="mock-tt-sidebar">
+            <div class="mock-tt-av">
+              <div class="mock-tt-av-circle">H&B</div>
+              <div class="mock-tt-plus-badge">+</div>
+            </div>
+            <div class="mock-tt-side-item"><span class="mock-tt-side-icon">♥</span><span class="mock-tt-side-count">1.2k</span></div>
+            <div class="mock-tt-side-item"><span class="mock-tt-side-icon">💬</span><span class="mock-tt-side-count">84</span></div>
+            <div class="mock-tt-side-item"><span class="mock-tt-side-icon">↗</span><span class="mock-tt-side-count">45</span></div>
+            <div class="mock-tt-side-item"><span class="mock-tt-side-icon">♫</span></div>
+          </div>
+        </div>
+        <div class="mock-tt-bar">
+          <div class="mock-tt-bar-item active"><span class="mock-tt-bar-icon">🏠</span>Home</div>
+          <div class="mock-tt-bar-item"><span class="mock-tt-bar-icon">🔍</span>Discover</div>
+          <div class="mock-tt-bar-item">
+            <div class="mock-tt-bar-add"><div class="mock-tt-bar-add-inner">+</div></div>
+          </div>
+          <div class="mock-tt-bar-item"><span class="mock-tt-bar-icon">📬</span>Inbox</div>
+          <div class="mock-tt-bar-item"><span class="mock-tt-bar-icon">👤</span>Profile</div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  // Fallback
+  return `<div class="mock-frame mock-fb">
+    <div class="mock-fb-header"><div class="mock-av">H&B</div><div class="mock-fb-info"><div class="mock-fb-name">${platform}</div></div></div>
+    <div class="mock-fb-text">${escHtml(text)}</div>
+    <div class="mock-fb-imgslot">${imgSlot}</div>
+  </div>`;
+}
+
+/* ──────────────────────────────────────────────────────────
    RENDER OUTPUT CARDS
    ────────────────────────────────────────────────────────── */
 function renderCards(combined) {
   const grid    = document.getElementById("cards");
   const entries = Object.entries(combined);
 
-  /* Grid columns based on count */
-  grid.style.gridTemplateColumns =
-    entries.length === 1 ? "1fr"
-    : entries.length === 2 ? "repeat(2, 1fr)"
-    : "repeat(auto-fit, minmax(280px, 1fr))";
-
+  grid.style.gridTemplateColumns = "";
   grid.innerHTML = "";
 
   const totals   = entries.map(([, d]) => totalScore(d.scores) ?? 0);
@@ -1820,41 +2116,23 @@ function renderCards(combined) {
     visual:    "Visual trigger",
   };
 
-  // Default schedule time: tomorrow 9am
-  const defaultDt = (() => {
-    const d = new Date(); d.setDate(d.getDate()+1);
-    d.setHours(9,0,0,0);
-    return d.toISOString().slice(0,16);
-  })();
-
   entries.forEach(([platform, data], idx) => {
     const { text, hashtags, sound, scores, imagePrompt } = data;
     const total  = totalScore(scores);
     const isBest = total !== null && total === maxScore && entries.length > 1;
 
-    /* Score tier label */
     let tier = "sp-mid", tierText = total !== null ? `${total}/100` : "";
-    if (isBest)          { tier = "sp-best"; tierText = "Best — post this"; }
-    else if (total >= 80){ tier = "sp-hi";  }
-    else if (total < 60) { tier = "sp-lo";  }
+    if (isBest)          { tier = "sp-best"; tierText = "★ Best — post this"; }
+    else if (total >= 80){ tier = "sp-hi"; }
+    else if (total < 60) { tier = "sp-lo"; }
 
     const subText = !isBest && total !== null
       ? (total >= 80 ? "Strong" : total >= 60 ? "Good" : "Weak") : "";
 
-    const platKey = PLAT_KEYS[platform] || "";
-    const isConn  = CONNECTED[platKey];
-    const cid     = safeId(platform) + "_" + idx;
-    const isTT    = platform === "TikTok";
+    const cid = safeId(platform) + "_" + idx;
 
-    // Store card data for post modal
     storeCardData(cid, platform, text, hashtags, sound);
 
-    // All platforms now use the preview modal — "Preview & Post" for all
-    const pubLabel   = "Preview & Post ↗";
-    const pubOnclick = `openPostModal('${cid}','${platform}')`;
-    const pubClass   = "";
-
-    /* Score bar rows */
     const barsHtml = scores
       ? Object.entries(scores).map(([k, v]) => `
           <div class="sb-row">
@@ -1864,80 +2142,44 @@ function renderCards(combined) {
           </div>`).join("")
       : "";
 
-    /* Hashtag chips */
-    const hashHtml = (hashtags && hashtags.length)
-      ? `<div style="margin-top:.5rem;display:flex;flex-wrap:wrap;gap:.3rem">${
-          hashtags.map(h => `<span style="font-size:.68rem;font-weight:600;color:var(--accent);background:#FAF0E8;border:1px solid #DEC4A0;border-radius:20px;padding:.1rem .55rem">${h}</span>`).join("")
-        }</div>` : "";
-
-    /* TikTok sound suggestion */
-    const soundHtml = (isTT && sound)
-      ? `<div class="sound-chip"><svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13M9 18a3 3 0 11-6 0 3 3 0 016 0zm12-2a3 3 0 11-6 0 3 3 0 016 0z"/></svg> ${escHtml(sound)}</div>` : "";
-
     const card = document.createElement("div");
     card.className = "card";
     card.innerHTML = `
-      <div class="card-head">
-        <div class="card-plat">
-          <div class="card-pip" style="background:${PIPS[platform]||'#999'}"></div>
-          <span class="card-pname">${platform}</span>
-        </div>
-        ${total !== null ? `
-          <div class="score-pill ${tier}">
-            ${tierText}${subText ? ` <span class="sp-sub">${subText}</span>` : ""}
-          </div>` : ""}
-        <div class="card-btns">
-          <button class="btn-sm btn-copy" onclick="doCopy('${cid}',this)">Copy</button>
-          <button class="btn-sm btn-pub ${pubClass}" id="pub-${cid}" onclick="${pubOnclick}">
-            ${pubLabel}
-          </button>
-        </div>
+      <!-- Hidden text for copy -->
+      <p id="t-${cid}" style="display:none">${escHtml(text)}</p>
+
+      <!-- Top row: score pill + buttons -->
+      <div class="card-top-row">
+        ${total !== null
+          ? `<div class="score-pill ${tier}">${tierText}${subText ? ` <span class="sp-sub">${subText}</span>` : ""}</div>`
+          : `<div class="spacer"></div>`}
+        <button class="btn-sm btn-copy" onclick="doCopy('${cid}',this)">Copy</button>
+        <button class="btn-sm btn-pub" onclick="openPostModal('${cid}','${platform}')">Preview &amp; Post ↗</button>
       </div>
-      <div class="card-body">
-        <p class="post-text" id="t-${cid}">${escHtml(text)}</p>
-        ${hashHtml}
-        ${soundHtml}
-      </div>
-      <div class="card-foot">
-        ${barsHtml ? `<div class="score-bars">${barsHtml}</div>` : ""}
-        <div class="foot-meta">
-          <span class="char-c">${text.length} chars</span>
-          ${isTT ? `<span class="limit l-ok">TikTok caption</span>` : ""}
-        </div>
-      </div>
-      <!-- Image section -->
-      <div class="img-section">
-        <div class="img-section-head">
-          <span class="img-section-label">
-            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-            AI Image
-          </span>
+
+      <!-- Platform mockup -->
+      ${buildMockup(platform, cid, text, hashtags, sound, imagePrompt)}
+
+      <!-- Image prompt + regen controls -->
+      <div class="mock-img-controls">
+        <div class="mock-img-prompt-row">
+          <textarea class="img-prompt-box" id="imgprompt-${cid}" rows="2">${escHtml(imagePrompt)}</textarea>
           <button class="btn-gen-img loading" id="imgbtn-${cid}" onclick="doGenerateImage('${cid}','${platform}',0)">
             <div class="spin-xs"></div>
             <span class="btn-label">Generating…</span>
           </button>
         </div>
-        <div class="img-prompt-row">
-          <textarea class="img-prompt-box" id="imgprompt-${cid}" rows="2">${escHtml(imagePrompt)}</textarea>
-        </div>
-        <div class="img-preview show" id="imgpreview-${cid}">
-          <div class="img-loading-overlay" id="imgoverlay-${cid}">
-            <div class="spin"></div>
-            <span>Generating image…</span>
-          </div>
-          <img id="imgel-${cid}" src="" alt="Generated post image" loading="lazy" crossorigin="anonymous"/>
-        </div>
         <div class="img-actions" id="imgacts-${cid}" style="display:none">
-          <button class="btn-img-act" onclick="doGenerateImage('${cid}','${platform}',0)">↻ New variation</button>
+          <button class="btn-img-act" onclick="doGenerateImage('${cid}','${platform}',0)">↻ New image</button>
           <button class="btn-img-act" onclick="downloadImg('${cid}')">⬇ Download</button>
           <button class="btn-img-act" onclick="copyImgPrompt('${cid}')">Copy prompt</button>
         </div>
       </div>
-      <!-- Preview & Post button -->
-      <button class="btn-preview-post" onclick="openPostModal('${cid}','${platform}')">
-        <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-        Preview &amp; Post
-      </button>`;
+
+      <!-- Score breakdown -->
+      ${barsHtml ? `<div class="score-panel"><div class="score-bars">${barsHtml}</div><div class="card-foot-bare"><span class="char-c">${text.length} chars</span></div></div>`
+                 : `<div class="card-foot-bare"><span class="char-c">${text.length} chars</span></div>`}
+    `;
     grid.appendChild(card);
   });
 }
@@ -1961,12 +2203,10 @@ function openModal() {
   setModalBadge("fb", !FB_TOKEN.includes("YOUR_"),      "Token set", "Not configured");
   setModalBadge("ig", !IG_USER_ID.includes("YOUR_"),    "Token set", "Not configured");
   setModalBadge("tt", !TIKTOK_TOKEN.includes("YOUR_"),  "Token set", "Not configured");
-  setModalBadge("li", !LINKEDIN_TOKEN.includes("YOUR_"),"Token set", "Not configured");
 
   document.getElementById("modal-fb-status").textContent = FB_TOKEN.includes("YOUR_")    ? "Add FB_TOKEN in HTML file"      : "Page ID + Token configured";
   document.getElementById("modal-ig-status").textContent = IG_USER_ID.includes("YOUR_")  ? "Add IG_USER_ID in HTML file"    : "Account ID + Token configured";
   document.getElementById("modal-tt-status").textContent = TIKTOK_TOKEN.includes("YOUR_")? "Add TIKTOK_TOKEN in HTML file"  : "Access token configured";
-  document.getElementById("modal-li-status").textContent = LINKEDIN_TOKEN.includes("YOUR_")? "Add LINKEDIN_TOKEN in HTML file" : "Access token configured";
 
   document.getElementById("modal").classList.add("open");
 }
@@ -2085,53 +2325,6 @@ async function publishToTikTok(caption, imageUrl) {
 }
 
 
-/* ──────────────────────────────────────────────────────────
-   PUBLISH — LinkedIn (Posts API v2)
-   Free. Token expires every 60 days — regenerate at:
-   linkedin.com/developers/tools/oauth/token-generator
-   Scope needed: w_member_social, openid, email
-   ────────────────────────────────────────────────────────── */
-async function publishToLinkedIn(text, imageUrl) {
-  if (LINKEDIN_TOKEN.includes("YOUR_") || LINKEDIN_URN.includes("YOUR_"))
-    throw new Error("LinkedIn not configured. Set LINKEDIN_TOKEN and LINKEDIN_URN in the HTML file.");
-
-  const body = {
-    author: LINKEDIN_URN,
-    commentary: text,
-    visibility: "PUBLIC",
-    distribution: { feedDistribution: "MAIN_FEED", targetEntities: [], thirdPartyDistributionChannels: [] },
-    lifecycleState: "PUBLISHED",
-    isReshareDisabledByAuthor: false,
-  };
-
-  // If we have a hosted image URL, attach it as an article link preview
-  if (imageUrl && !imageUrl.startsWith("data:")) {
-    body.content = {
-      article: {
-        source: imageUrl,
-        title: "Hearth & Brew",
-        description: text.slice(0, 200),
-      }
-    };
-  }
-
-  const res = await fetch("https://api.linkedin.com/rest/posts", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${LINKEDIN_TOKEN}`,
-      "Content-Type": "application/json",
-      "X-Restli-Protocol-Version": "2.0.0",
-      "LinkedIn-Version": "202401",
-    },
-    body: JSON.stringify(body),
-  });
-
-  if (res.status === 201) return { success: true }; // LinkedIn returns 201 with no body on success
-  const data = await res.json().catch(() => ({}));
-  if (data.message || data.code) throw new Error(data.message || `LinkedIn error ${res.status}`);
-  if (!res.ok) throw new Error(`LinkedIn HTTP ${res.status}`);
-  return data;
-}
 
 
 /* ──────────────────────────────────────────────────────────
@@ -2149,7 +2342,6 @@ async function doPublish(cid, platform, btn) {
     if (platform === "Facebook")  await publishToFacebook(text, imgSrc);
     if (platform === "Instagram") await publishToInstagram(text, imgSrc);
     if (platform === "TikTok")    await publishToTikTok(text, imgSrc);
-    if (platform === "LinkedIn")  await publishToLinkedIn(text, imgSrc);
     btn.textContent = "Published ✓";
     btn.classList.add("done");
   } catch (err) {
@@ -2173,8 +2365,9 @@ function storeCardData(cid, platform, text, hashtags, sound) {
 }
 
 function openPostModal(cid, platform) {
+  console.log("openPostModal called:", cid, platform, "cardData keys:", Object.keys(cardData));
   const d = cardData[cid];
-  if (!d) return;
+  if (!d) { console.error("No cardData for cid:", cid); return; }
 
   const isTT   = platform === "TikTok";
   const isConn = CONNECTED[PLAT_KEYS[platform] || ""] || false;
@@ -2240,8 +2433,6 @@ function openPostModal(cid, platform) {
     } else {
       const note = platform === "TikTok"
         ? `Will post as <strong>draft</strong> on TikTok until your app passes TikTok's audit.`
-        : platform === "LinkedIn"
-        ? `Token expires every 60 days — regenerate at <a href="https://www.linkedin.com/developers/tools/oauth/token-generator" target="_blank" style="color:var(--accent)">LinkedIn OAuth tools</a>.`
         : `Click below to publish immediately to <strong>${platform}</strong>.`;
       document.getElementById("pm-now-note").innerHTML = note;
     }
@@ -2294,7 +2485,6 @@ async function pmPostNow() {
     if (platform === "Facebook")  await publishToFacebook(text, imgSrc);
     if (platform === "Instagram") await publishToInstagram(text, imgSrc);
     if (platform === "TikTok")    await publishToTikTok(text, imgSrc);
-    if (platform === "LinkedIn")  await publishToLinkedIn(text, imgSrc);
     btn.classList.add("done");
     lbl.textContent = "✓ Published!";
     setTimeout(() => closePostModal(), 1800);
