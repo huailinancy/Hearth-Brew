@@ -85,6 +85,16 @@ body {
   flex: 1;
 }
 
+/* Settings gear button */
+.btn-settings {
+  background: none; border: none; cursor: pointer;
+  font-size: 1.1rem; color: rgba(240,232,220,.4);
+  padding: .25rem .4rem; border-radius: 6px;
+  transition: color .15s, background .15s;
+  line-height: 1;
+}
+.btn-settings:hover { color: rgba(240,232,220,.85); background: rgba(255,255,255,.08); }
+
 /* Account chips */
 .accounts {
   display: flex;
@@ -668,6 +678,67 @@ textarea.inp {
 }
 .btn-preview-post:hover { background: var(--ink-2); }
 .btn-preview-post svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ── Settings Modal ── */
+#settings-modal {
+  display: none; position: fixed; inset: 0;
+  background: rgba(24,18,10,.6); backdrop-filter: blur(6px);
+  z-index: 400; align-items: center; justify-content: center; padding: 1rem;
+}
+#settings-modal.open { display: flex; }
+.settings-modal-box {
+  background: var(--surface); border-radius: 16px;
+  box-shadow: 0 24px 60px rgba(0,0,0,.25);
+  width: 100%; max-width: 460px; padding: 1.75rem;
+  display: flex; flex-direction: column; gap: 1.1rem;
+}
+.settings-header { display: flex; align-items: center; justify-content: space-between; }
+.settings-title { font-family: var(--serif); font-size: 1.15rem; color: var(--ink); }
+.settings-desc { font-size: .75rem; color: var(--ink-3); line-height: 1.5; margin: 0; }
+.settings-field { display: flex; flex-direction: column; gap: .35rem; }
+.settings-label { font-size: .72rem; font-weight: 600; color: var(--ink-2); }
+.settings-input-row { display: flex; gap: .4rem; }
+.settings-inp {
+  flex: 1; padding: .45rem .7rem; border: 1px solid var(--border-2);
+  border-radius: var(--r-xs); font-family: var(--sans); font-size: .8rem;
+  background: #fff; outline: none; min-width: 0;
+}
+.settings-inp:focus { border-color: var(--accent); }
+.btn-key-toggle {
+  padding: .4rem .7rem; border: 1px solid var(--border-2); border-radius: var(--r-xs);
+  background: var(--surface-2); font-size: .72rem; cursor: pointer; white-space: nowrap;
+  color: var(--ink-2);
+}
+.btn-key-toggle:hover { background: var(--border); }
+.settings-status { font-size: .68rem; min-height: .9rem; }
+.settings-status.set { color: #059669; }
+.settings-status.unset { color: var(--ink-3); }
+.settings-actions { display: flex; gap: .6rem; margin-top: .25rem; }
+.btn-settings-save {
+  flex: 1; padding: .55rem; background: var(--accent); color: #fff;
+  border: none; border-radius: var(--r-sm); font-size: .82rem;
+  font-weight: 600; cursor: pointer; font-family: var(--sans);
+}
+.btn-settings-save:hover { background: var(--accent-dk); }
+.btn-settings-cancel {
+  padding: .55rem 1rem; background: none; border: 1px solid var(--border-2);
+  border-radius: var(--r-sm); font-size: .82rem; cursor: pointer;
+  color: var(--ink-2); font-family: var(--sans);
+}
+.btn-settings-cancel:hover { background: var(--surface-2); }
+
+/* No-key banner */
+.no-key-banner {
+  display: none; align-items: center; gap: .6rem;
+  background: #fef3c7; border: 1px solid #fcd34d;
+  border-radius: var(--r-sm); padding: .65rem 1rem;
+  font-size: .78rem; color: #92400e; margin-bottom: .5rem;
+}
+.no-key-banner.show { display: flex; }
+.no-key-banner button {
+  margin-left: auto; padding: .3rem .75rem; background: #92400e; color: #fff;
+  border: none; border-radius: 6px; font-size: .72rem; cursor: pointer;
+}
 
 /* ── Post Preview Modal ── */
 #post-modal {
@@ -1464,6 +1535,7 @@ textarea.inp {
       <span class="acc-name" id="lbl-tt">TikTok</span>
     </div>
   </div>
+  <button class="btn-settings" onclick="openSettings()" title="API Key Settings">⚙</button>
 </header>
 
 <!-- ════════════════════════════════════════════════════════
@@ -1549,6 +1621,10 @@ textarea.inp {
     <button class="btn-gen" id="gen-btn" onclick="handleGenerate()">
       Generate Posts
     </button>
+  </div>
+  <div class="no-key-banner" id="no-key-banner">
+    ⚠ No Anthropic API key set — posts can't be generated yet.
+    <button onclick="openSettings()">Add Keys</button>
   </div>
 
 </div>
@@ -1852,6 +1928,51 @@ textarea.inp {
 </div>
 </div>
 
+<!-- ════════════════════════════════════════════════════════
+     SETTINGS MODAL
+     ════════════════════════════════════════════════════════ -->
+<div id="settings-modal">
+<div class="settings-modal-box">
+  <div class="settings-header">
+    <span class="settings-title">API Keys</span>
+    <button class="modal-x" onclick="closeSettings()">✕</button>
+  </div>
+  <p class="settings-desc">Keys are saved to your browser's localStorage — they never leave your device or get committed to git.</p>
+
+  <div class="settings-field">
+    <label class="settings-label">Anthropic (Claude)</label>
+    <div class="settings-input-row">
+      <input class="settings-inp" id="skey-anthropic" type="password" placeholder="sk-ant-api03-…" autocomplete="off"/>
+      <button class="btn-key-toggle" onclick="toggleKeyVis('skey-anthropic',this)">Show</button>
+    </div>
+    <div class="settings-status" id="sstatus-anthropic"></div>
+  </div>
+
+  <div class="settings-field">
+    <label class="settings-label">OpenAI (DALL-E image generation)</label>
+    <div class="settings-input-row">
+      <input class="settings-inp" id="skey-openai" type="password" placeholder="sk-proj-…" autocomplete="off"/>
+      <button class="btn-key-toggle" onclick="toggleKeyVis('skey-openai',this)">Show</button>
+    </div>
+    <div class="settings-status" id="sstatus-openai"></div>
+  </div>
+
+  <div class="settings-field">
+    <label class="settings-label">RunwayML (TikTok video generation)</label>
+    <div class="settings-input-row">
+      <input class="settings-inp" id="skey-runway" type="password" placeholder="key_…" autocomplete="off"/>
+      <button class="btn-key-toggle" onclick="toggleKeyVis('skey-runway',this)">Show</button>
+    </div>
+    <div class="settings-status" id="sstatus-runway"></div>
+  </div>
+
+  <div class="settings-actions">
+    <button class="btn-settings-save" onclick="saveSettings()">Save Keys</button>
+    <button class="btn-settings-cancel" onclick="closeSettings()">Cancel</button>
+  </div>
+</div>
+</div>
+
 <script>
 /* ──────────────────────────────────────────────────────────
    CONFIG
@@ -1860,14 +1981,10 @@ textarea.inp {
    🔑 API KEYS — ADD YOUR KEYS HERE
    ============================================================ */
 
-// ***** ADD YOUR ANTHROPIC API KEY BELOW *****
-const API_KEY = "YOUR_ANTHROPIC_API_KEY_HERE";
-
-// ***** ADD YOUR OPENAI API KEY BELOW (for DALL-E 3 image generation) *****
-const OPENAI_KEY = "YOUR_OPENAI_API_KEY_HERE";
-
-// ***** ADD YOUR RUNWAYML API KEY BELOW (for TikTok video generation) *****
-const RUNWAY_KEY = "YOUR_RUNWAYML_API_KEY_HERE";
+// API keys — loaded from localStorage so they never need to be in source code
+let API_KEY    = localStorage.getItem("hb_anthropic_key") || "";
+let OPENAI_KEY = localStorage.getItem("hb_openai_key")    || "";
+let RUNWAY_KEY = localStorage.getItem("hb_runway_key")    || "";
 
 /* ============================================================
    📱 SOCIAL MEDIA TOKENS — ADD YOUR TOKENS HERE
@@ -2080,6 +2197,8 @@ function setUI(state, msg) {
    GENERATE
    ────────────────────────────────────────────────────────── */
 async function handleGenerate() {
+  if (!API_KEY) { openSettings(); return; }
+
   const platforms   = getSelectedPlatforms();
   const contentType = resolveVal("content-type", "ct-custom");
   const tone        = resolveVal("tone", "tone-custom");
@@ -2520,6 +2639,61 @@ async function initMedia() {
   mediaItems = await dbGetAll();
 }
 
+/* ──────────────────────────────────────────────────────────
+   SETTINGS MODAL
+   ────────────────────────────────────────────────────────── */
+function openSettings() {
+  // Pre-fill with current (masked) values
+  const fields = [
+    { id: "skey-anthropic", key: "hb_anthropic_key", status: "sstatus-anthropic" },
+    { id: "skey-openai",    key: "hb_openai_key",    status: "sstatus-openai"    },
+    { id: "skey-runway",    key: "hb_runway_key",     status: "sstatus-runway"    },
+  ];
+  fields.forEach(({ id, key, status }) => {
+    const val = localStorage.getItem(key) || "";
+    document.getElementById(id).value = val;
+    const s = document.getElementById(status);
+    s.textContent = val ? "✓ Key saved" : "Not set";
+    s.className = "settings-status " + (val ? "set" : "unset");
+  });
+  document.getElementById("settings-modal").classList.add("open");
+}
+
+function closeSettings() {
+  document.getElementById("settings-modal").classList.remove("open");
+}
+
+function saveSettings() {
+  const map = {
+    "skey-anthropic": "hb_anthropic_key",
+    "skey-openai":    "hb_openai_key",
+    "skey-runway":    "hb_runway_key",
+  };
+  Object.entries(map).forEach(([inputId, storageKey]) => {
+    const val = document.getElementById(inputId).value.trim();
+    if (val) localStorage.setItem(storageKey, val);
+    else localStorage.removeItem(storageKey);
+  });
+  // Reload keys into live variables
+  API_KEY    = localStorage.getItem("hb_anthropic_key") || "";
+  OPENAI_KEY = localStorage.getItem("hb_openai_key")    || "";
+  RUNWAY_KEY = localStorage.getItem("hb_runway_key")    || "";
+  updateKeyBanner();
+  closeSettings();
+}
+
+function toggleKeyVis(inputId, btn) {
+  const inp = document.getElementById(inputId);
+  const showing = inp.type === "text";
+  inp.type = showing ? "password" : "text";
+  btn.textContent = showing ? "Show" : "Hide";
+}
+
+function updateKeyBanner() {
+  const banner = document.getElementById("no-key-banner");
+  if (banner) banner.classList.toggle("show", !API_KEY);
+}
+
 /* ── Modal open/close ── */
 function openMediaLibrary() {
   document.getElementById("media-modal").classList.add("open");
@@ -2857,6 +3031,7 @@ function useMediaInCard(mediaId, cid, platform) {
 
 /* ── Init on page load ── */
 initMedia();
+updateKeyBanner();
 
 function showImgError(cid, platform, msg) {
   const overlay = document.getElementById("imgoverlay-" + cid);
