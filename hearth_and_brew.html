@@ -1295,7 +1295,7 @@ textarea.inp {
 #media-modal.open { display: flex; }
 .media-modal-box {
   background: var(--surface); border-radius: 18px;
-  width: 100%; max-width: 760px; max-height: 90vh;
+  width: 100%; max-width: 1080px; max-height: 92vh;
   display: flex; flex-direction: column; overflow: hidden;
   box-shadow: 0 24px 80px rgba(24,18,10,.25);
 }
@@ -1389,6 +1389,23 @@ textarea.inp {
 
 /* Media grid */
 .media-grid-label { font-size: .68rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+
+/* Tag filter bar */
+.media-tag-filter-bar {
+  display: flex; flex-wrap: wrap; gap: .3rem; align-items: center;
+  padding: .5rem 0 .25rem;
+}
+.media-tag-filter-bar-label {
+  font-size: .65rem; font-weight: 700; letter-spacing: .07em;
+  text-transform: uppercase; color: var(--ink-3); margin-right: .25rem; white-space: nowrap;
+}
+.media-tag-filter-chip {
+  font-size: .68rem; padding: .18rem .55rem; border-radius: 20px; cursor: pointer;
+  border: 1px solid var(--border-2); background: var(--surface); color: var(--ink-2);
+  transition: background .13s, color .13s, border-color .13s;
+}
+.media-tag-filter-chip:hover { background: var(--ink-3); color: #fff; border-color: var(--ink-3); }
+.media-tag-filter-chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 .media-grid {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: .75rem;
 }
@@ -1433,6 +1450,36 @@ textarea.inp {
   border-radius: var(--r-xs); font-size: .68rem; cursor: pointer; color: var(--ink-2);
 }
 .media-add-tag-btn:hover { background: var(--border); }
+/* Used-media toggle */
+.media-used-toggle {
+  display: flex; align-items: center; gap: .35rem;
+  font-size: .68rem; color: var(--ink-2); cursor: pointer;
+  user-select: none; padding: .1rem 0;
+}
+.media-used-toggle input[type="checkbox"] { accent-color: var(--green); cursor: pointer; }
+.media-used-toggle.is-used { color: var(--green); font-weight: 600; }
+
+/* Used item card — dimmed */
+.media-item.used { opacity: .6; }
+
+/* Green ✓ badge on thumbnail for used items */
+.media-used-badge {
+  position: absolute; top: .3rem; right: .3rem;
+  width: 1.3rem; height: 1.3rem; border-radius: 50%;
+  background: var(--green); color: #fff;
+  font-size: .62rem; font-weight: 800; line-height: 1.3rem;
+  text-align: center; pointer-events: none;
+}
+
+/* Divider between Available / Previously Used sections */
+.media-section-divider {
+  grid-column: 1 / -1;
+  font-size: .65rem; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--ink-3);
+  border-top: 1px solid var(--border);
+  padding-top: .6rem; margin-top: .1rem;
+}
+
 .media-item-del {
   width: 100%; padding: .3rem; background: none; border: none;
   border-top: 1px solid var(--border); font-size: .68rem;
@@ -1901,7 +1948,7 @@ textarea.inp {
     <!-- Tag prompt (shown after selecting files) -->
     <div class="media-tag-prompt" id="media-tag-prompt">
       <div class="media-tag-prompt-label" id="media-tag-prompt-label">Add tags to your upload</div>
-      <div class="media-preset-label">Quick-tag by content type:</div>
+      <div class="media-preset-label">Content type <span style="color:var(--red);font-weight:700">*</span> — select at least one:</div>
       <div class="media-preset-chips" id="upload-preset-chips"></div>
       <div class="media-tag-chips" id="upload-tag-chips"></div>
       <div class="media-tag-row">
@@ -1920,6 +1967,11 @@ textarea.inp {
 
     <!-- Existing media grid -->
     <div class="media-grid-label">Uploaded Media</div>
+    <!-- All-tags filter bar -->
+    <div class="media-tag-filter-bar" id="media-tag-filter-bar" style="display:none">
+      <span class="media-tag-filter-bar-label">Filter by tag:</span>
+      <!-- chips rendered by JS -->
+    </div>
     <div class="media-grid" id="media-grid">
       <div class="media-empty" id="media-empty">No media uploaded yet. Add photos and videos above.</div>
     </div>
@@ -2237,13 +2289,13 @@ async function handleGenerate() {
     });
 
     setUI("done");
-    renderCards(combined, contentType);
+    renderCards(combined, contentType, extra, tone);
     addHistory(contentType, postsRaw);
 
     // For each card: use library media if available, otherwise generate via API
     Object.keys(combined).forEach((platform, i) => {
       const cid = safeId(platform) + "_" + i;
-      const matches = findMatchingMedia(platform, contentType);
+      const matches = findMatchingMedia(platform, contentType, extra, tone);
       if (matches.length) {
         // Small delay so card DOM is ready
         setTimeout(() => applyLibraryMedia(matches[0], cid, platform), i * 100);
@@ -2463,8 +2515,10 @@ async function doGenerateImage(cid, platform, attempt) {
 async function generateTikTokVideo(cid) {
   // Use library video if one matches the current content type
   const container = document.getElementById("usemedia-" + cid);
-  const ct = container?.dataset.contentType || null;
-  const videoMatches = findMatchingMedia("TikTok", ct);
+  const ct   = container?.dataset.contentType || null;
+  const desc = container?.dataset.description || null;
+  const tn   = container?.dataset.tone        || null;
+  const videoMatches = findMatchingMedia("TikTok", ct, desc, tn);
   if (videoMatches.length) {
     useMediaInCard(videoMatches[0].id, cid, "TikTok");
     const btn = document.getElementById("vidbtn-" + cid);
@@ -2597,6 +2651,7 @@ function downloadVideo(cid) {
 
 let mediaDB = null;
 let mediaItems = [];       // in-memory cache
+let activeTagFilter = null;
 let pendingFiles = [];     // files awaiting tag confirmation
 let uploadTags = [];       // tags for current upload batch
 
@@ -2803,6 +2858,21 @@ function renderUploadTagChips() {
 /* ── Confirm upload ── */
 async function confirmUpload() {
   if (!pendingFiles.length) return;
+
+  // Require at least one content-type tag
+  const contentTypeNorms = CONTENT_TYPES.map(t => t.toLowerCase());
+  const hasContentType = uploadTags.some(t => contentTypeNorms.includes(t));
+  if (!hasContentType) {
+    const label = document.querySelector(".media-preset-label");
+    label.style.color = "var(--red)";
+    label.textContent = "Please select at least one content type before uploading.";
+    setTimeout(() => {
+      label.style.color = "";
+      label.innerHTML = `Content type <span style="color:var(--red);font-weight:700">*</span> — select at least one:`;
+    }, 3000);
+    return;
+  }
+
   const btn = document.querySelector(".btn-media-upload");
   btn.textContent = "Saving…"; btn.disabled = true;
 
@@ -2814,6 +2884,7 @@ async function confirmUpload() {
       id, name: file.name, type, mimeType: file.type,
       blob: file, thumbnail,
       tags: [...uploadTags],
+      used: false,
       uploadedAt: new Date().toISOString(),
     };
     await dbPut(item);
@@ -2873,23 +2944,33 @@ function generateMediaThumbnail(file, type) {
 }
 
 /* ── Render media grid in modal ── */
-function renderMediaGrid() {
-  const grid  = document.getElementById("media-grid");
-  const empty = document.getElementById("media-empty");
-  if (!mediaItems.length) {
-    grid.innerHTML = "";
-    grid.appendChild(empty);
-    empty.style.display = "block";
-    return;
-  }
-  empty.style.display = "none";
-  grid.innerHTML = mediaItems.map(item => `
-    <div class="media-item" id="mitem-${item.id}">
+function renderTagFilterBar() {
+  const bar = document.getElementById("media-tag-filter-bar");
+  const allTags = [...new Set(mediaItems.flatMap(m => m.tags))].sort();
+  if (!allTags.length) { bar.style.display = "none"; return; }
+  bar.style.display = "flex";
+  const allChip = `<button class="media-tag-filter-chip${activeTagFilter === null ? ' active' : ''}" onclick="setTagFilter(null)">All</button>`;
+  const chips = allTags.map(t =>
+    `<button class="media-tag-filter-chip${activeTagFilter === t ? ' active' : ''}" onclick="setTagFilter('${escHtml(t)}')">${escHtml(t)}</button>`
+  ).join("");
+  bar.innerHTML = `<span class="media-tag-filter-bar-label">Filter by tag:</span>${allChip}${chips}`;
+}
+
+function setTagFilter(tag) {
+  activeTagFilter = tag;
+  renderMediaGrid();
+}
+
+function mediaItemHTML(item) {
+  const isUsed = !!item.used;
+  return `
+    <div class="media-item${isUsed ? ' used' : ''}" id="mitem-${item.id}">
       <div class="media-thumb">
         ${item.thumbnail
           ? `<img src="${item.thumbnail}" alt="${escHtml(item.name)}"/>`
           : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2rem">${item.type==='video'?'🎬':'🖼️'}</div>`}
         <div class="media-type-badge">${item.type}</div>
+        ${isUsed ? `<div class="media-used-badge">✓</div>` : ''}
       </div>
       <div class="media-item-body">
         <div class="media-item-name" title="${escHtml(item.name)}">${escHtml(item.name)}</div>
@@ -2906,9 +2987,46 @@ function renderMediaGrid() {
                  onkeydown="if(event.key==='Enter'){addItemTag('${item.id}');event.preventDefault()}"/>
           <button class="media-add-tag-btn" onclick="addItemTag('${item.id}')">+</button>
         </div>
+        <label class="media-used-toggle${isUsed ? ' is-used' : ''}">
+          <input type="checkbox" ${isUsed ? 'checked' : ''} onchange="toggleMediaUsed('${item.id}')"/>
+          ${isUsed ? 'Used in a post' : 'Mark as used'}
+        </label>
         <button class="media-item-del" onclick="deleteMediaItem('${item.id}')">🗑 Remove</button>
       </div>
-    </div>`).join("");
+    </div>`;
+}
+
+function renderMediaGrid() {
+  const grid  = document.getElementById("media-grid");
+  const empty = document.getElementById("media-empty");
+  renderTagFilterBar();
+  if (!mediaItems.length) {
+    grid.innerHTML = "";
+    grid.appendChild(empty);
+    empty.style.display = "block";
+    return;
+  }
+  const visible = activeTagFilter
+    ? mediaItems.filter(m => m.tags.includes(activeTagFilter))
+    : mediaItems;
+  if (!visible.length) {
+    grid.innerHTML = `<div class="media-empty">No items tagged "<strong>${escHtml(activeTagFilter)}</strong>".</div>`;
+    empty.style.display = "none";
+    return;
+  }
+  empty.style.display = "none";
+
+  const unused = visible.filter(m => !m.used);
+  const used   = visible.filter(m => !!m.used);
+
+  let html = unused.map(mediaItemHTML).join("");
+
+  if (used.length) {
+    html += `<div class="media-section-divider">Previously Used (${used.length})</div>`;
+    html += used.map(mediaItemHTML).join("");
+  }
+
+  grid.innerHTML = html;
 }
 
 /* ── Tag management (existing items) ── */
@@ -2939,19 +3057,66 @@ async function deleteMediaItem(id) {
   refreshAllCardMedia();
 }
 
+async function toggleMediaUsed(id) {
+  const item = mediaItems.find(m => m.id === id);
+  if (!item) return;
+  item.used = !item.used;
+  await dbPut(item);
+  renderMediaGrid();
+}
+
 /* ── "Your Media" in post cards ── */
-function findMatchingMedia(platform, contentType) {
-  const type = platform === "TikTok" ? "video" : "image";
-  const ct = contentType ? contentType.toLowerCase() : null;
-  return mediaItems.filter(m => {
-    if (m.type !== type) return false;
-    if (!ct) return true;
-    // Show if any tag matches or overlaps with the content type
-    return m.tags.some(tag => {
-      const t = tag.toLowerCase();
-      return t === ct || ct.includes(t) || t.includes(ct);
-    });
-  });
+
+// Tokenise a string into lowercase words, stripping punctuation
+function _tokens(str) {
+  if (!str) return [];
+  return str.toLowerCase().replace(/[^a-z0-9\s]/g, " ").split(/\s+/).filter(Boolean);
+}
+
+// Returns a 0–1 similarity score between two token arrays.
+// A pair of words is considered similar if one starts with the other (covers plurals,
+// gerunds, simple stems) or they share a 4+ char prefix.
+function _tokenSim(aTokens, bTokens) {
+  if (!aTokens.length || !bTokens.length) return 0;
+  let hits = 0;
+  for (const a of aTokens) {
+    for (const b of bTokens) {
+      if (a === b || a.startsWith(b) || b.startsWith(a) ||
+          (a.length >= 4 && b.length >= 4 && a.slice(0, 4) === b.slice(0, 4))) {
+        hits++;
+        break;
+      }
+    }
+  }
+  return hits / aTokens.length;
+}
+
+// Priority: content-type exact match (+3) > description fuzzy match (+2) > tone fuzzy match (+1)
+function findMatchingMedia(platform, contentType, description, tone) {
+  const mediaType = platform === "TikTok" ? "video" : "image";
+  const ctNorm   = contentType ? contentType.toLowerCase() : null;
+  const descToks = _tokens(description);
+  const toneToks = _tokens(tone);
+
+  const scored = mediaItems
+    .filter(m => m.type === mediaType)
+    .map(m => {
+      let score = 0;
+      for (const tag of m.tags) {
+        const tagNorm = tag.toLowerCase();
+        const tagToks = _tokens(tag);
+        if (ctNorm && tagNorm === ctNorm)                score += 3;  // exact match only
+        score += _tokenSim(tagToks, descToks) * 2;
+        score += _tokenSim(tagToks, toneToks) * 1;
+      }
+      return { item: m, score };
+    })
+    .filter(x => x.score > 0)
+    .sort((a, b) => b.score - a.score);
+
+  // If nothing scored and no content type filter, show all of the right media type
+  if (!scored.length && !ctNorm) return mediaItems.filter(m => m.type === mediaType);
+  return scored.map(x => x.item);
 }
 
 function refreshAllCardMedia() {
@@ -2959,17 +3124,23 @@ function refreshAllCardMedia() {
     const cid         = el.id.replace("usemedia-", "");
     const platform    = el.dataset.platform;
     const contentType = el.dataset.contentType || null;
-    if (platform) populateCardMedia(cid, platform, contentType);
+    const description = el.dataset.description || null;
+    const tone        = el.dataset.tone        || null;
+    if (platform) populateCardMedia(cid, platform, contentType, description, tone);
   });
 }
 
-function populateCardMedia(cid, platform, contentType) {
+function populateCardMedia(cid, platform, contentType, description, tone) {
   const container = document.getElementById("usemedia-" + cid);
   if (!container) return;
   container.dataset.platform = platform;
   if (contentType) container.dataset.contentType = contentType;
-  const ct = contentType || container.dataset.contentType || null;
-  const matches = findMatchingMedia(platform, ct);
+  if (description) container.dataset.description = description;
+  if (tone)        container.dataset.tone         = tone;
+  const ct   = contentType || container.dataset.contentType || null;
+  const desc = description || container.dataset.description || null;
+  const tn   = tone        || container.dataset.tone        || null;
+  const matches = findMatchingMedia(platform, ct, desc, tn);
 
   if (!matches.length) {
     const allType = mediaItems.filter(m => m.type === (platform === "TikTok" ? "video" : "image"));
@@ -3208,7 +3379,7 @@ function buildMockup(platform, cid, text, hashtags, sound, imagePrompt) {
 /* ──────────────────────────────────────────────────────────
    RENDER OUTPUT CARDS
    ────────────────────────────────────────────────────────── */
-function renderCards(combined, contentType) {
+function renderCards(combined, contentType, description, tone) {
   const grid    = document.getElementById("cards");
   const entries = Object.entries(combined);
 
@@ -3325,9 +3496,11 @@ function renderCards(combined, contentType) {
                  : `<div class="card-foot-bare"><span class="char-c">${text.length} chars</span></div>`}
     `;
     card.querySelector(`#usemedia-${cid}`).dataset.platform = platform;
-    if (contentType) card.querySelector(`#usemedia-${cid}`).dataset.contentType = contentType;
+    if (contentType)  card.querySelector(`#usemedia-${cid}`).dataset.contentType  = contentType;
+    if (description)  card.querySelector(`#usemedia-${cid}`).dataset.description  = description;
+    if (tone)         card.querySelector(`#usemedia-${cid}`).dataset.tone          = tone;
     grid.appendChild(card);
-    populateCardMedia(cid, platform, contentType);
+    populateCardMedia(cid, platform, contentType, description, tone);
   });
 }
 
