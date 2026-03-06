@@ -2329,20 +2329,24 @@ async function generateImagePrompt(contentType, extra, platform) {
   };
   const style = platformStyle[platform] || "square 1:1, warm café photography";
 
-  const prompt = `You are a visual creative director for Hearth & Brew, a cozy artisan coffee shop in Edmonds, WA.
+  const prompt = `You are a visual creative director for Hearth & Brew, a cozy independent coffee shop in Edmonds, WA.
 
-Generate a detailed image generation prompt (for Stable Diffusion / DALL-E) for a social media post about: "${contentType}"${extra ? `. Details: ${extra}` : ""}.
+Generate a detailed, photorealistic image generation prompt (for DALL-E 3) for a social media post about: "${contentType}"${extra ? `. Details: ${extra}` : ""}.
 
 Platform: ${platform} — style guidance: ${style}
 
-The prompt should describe:
-- The specific food/drink product if applicable (latte, pastry, sourdough, etc.)
-- Lighting, mood, and atmosphere (warm, golden, cozy, PNW)
-- Props and background elements (wooden table, ceramic mug, rain on window, ferns, etc.)
-- Camera angle and framing
-- Color palette
+The image MUST look like a real photograph taken inside or around Hearth & Brew. Always ground the scene in this specific café/bakery setting:
+- Interior details: exposed brick walls, mismatched wooden tables, soft warm Edison-bulb lighting, bookshelves lining the walls, a chalkboard menu in the background
+- Natural light from the front windows, PNW overcast or golden-hour glow
+- Ceramic mugs, linen napkins, worn wood surfaces, small potted plants
 
-Return ONLY the image prompt text, nothing else. Make it rich and detailed (60-100 words). No preamble, no quotes.`;
+The prompt should describe:
+- The specific food/drink product if applicable (latte, pastry, sourdough, etc.) — positioned naturally on a table or held by hands
+- Camera angle, depth of field, and framing
+- Color palette (warm ambers, creams, deep browns, soft greens)
+- Mood: lived-in, welcoming, real — NOT staged or stock-photo sterile
+
+Return ONLY the image prompt text, nothing else. Make it rich and detailed (70-110 words). Start directly with the scene description. No preamble, no quotes.`;
 
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -2396,7 +2400,7 @@ async function doGenerateImage(cid, platform, attempt) {
   };
   const size = sizeMap[platform] || "1024x1024";
 
-  const fullPrompt = `${prompt}, professional food photography, warm cozy lighting, artisan coffee shop aesthetic, high quality, beautiful, detailed`;
+  const fullPrompt = `${prompt}, photorealistic photograph, not illustrated, not rendered, real café interior with exposed brick and mismatched wooden tables, warm Edison-bulb lighting, shallow depth of field, shot on a mirrorless camera, high resolution`;
 
   try {
     const res = await fetch("https://api.openai.com/v1/images/generations", {
@@ -2406,11 +2410,12 @@ async function doGenerateImage(cid, platform, attempt) {
         "Authorization": `Bearer ${OPENAI_KEY}`,
       },
       body: JSON.stringify({
-        model:   "dall-e-3",
-        prompt:  fullPrompt,
-        n:       1,
-        size:    size,
-        quality: "standard",
+        model:           "dall-e-3",
+        prompt:          fullPrompt,
+        n:               1,
+        size:            size,
+        quality:         "standard",
+        response_format: "b64_json",
       }),
     });
 
@@ -2420,9 +2425,10 @@ async function doGenerateImage(cid, platform, attempt) {
       throw new Error(data.error?.message || `HTTP ${res.status}`);
     }
 
-    const imgUrl = data.data?.[0]?.url;
-    if (!imgUrl) throw new Error("No image URL returned.");
+    const b64 = data.data?.[0]?.b64_json;
+    if (!b64) throw new Error("No image data returned.");
 
+    const dataUrl = "data:image/png;base64," + b64;
     const img = document.getElementById("imgel-" + cid);
     img.onload = () => {
       overlay.style.display = "none";
@@ -2430,14 +2436,13 @@ async function doGenerateImage(cid, platform, attempt) {
       btn.disabled = false;
       btn.querySelector(".btn-label").textContent = "↻ Regenerate";
       actRow.style.display = "flex";
-      img.dataset.blobSrc = imgUrl;
+      img.dataset.blobSrc = dataUrl;
     };
     img.onerror = () => {
       if (attempt < 2) setTimeout(() => doGenerateImage(cid, platform, attempt + 1), 1500);
       else showImgError(cid, platform, "Image failed to load.");
     };
-    img.crossOrigin = "anonymous";
-    img.src = imgUrl;
+    img.src = dataUrl;
 
   } catch (err) {
     console.error("DALL-E error:", err.message);
@@ -2499,7 +2504,7 @@ async function generateTikTokVideo(cid) {
       body: JSON.stringify({
         model:       "gen3a_turbo",
         promptImage: imgUrl,
-        promptText:  "Cozy coffee shop ambiance, gentle steam rising from a cup, warm golden light, smooth cinematic slow motion, inviting atmosphere",
+        promptText:  "Photorealistic footage inside Hearth & Brew café, exposed brick walls, mismatched wooden tables, warm Edison-bulb glow, gentle steam rising, natural PNW window light, cinematic slow motion, lived-in and welcoming, real café atmosphere",
         ratio:       "768:1280",
         duration:    5,
       }),
