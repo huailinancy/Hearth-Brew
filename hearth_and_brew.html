@@ -397,6 +397,7 @@ textarea.inp {
   display: flex;
   flex-wrap: wrap;
   gap: 2rem;
+  justify-content: center;
   align-items: flex-start;
 }
 
@@ -1281,6 +1282,15 @@ textarea.inp {
   cursor: pointer; font-size: .75rem; padding: 0; line-height: 1;
 }
 .media-tag-chip button:hover { color: #fff; }
+.media-preset-label { font-size: .68rem; color: var(--ink-3); margin: .4rem 0 .25rem; }
+.media-preset-chips { display: flex; flex-wrap: wrap; gap: .3rem; margin-bottom: .5rem; }
+.media-preset-chip {
+  font-size: .68rem; padding: .18rem .5rem; border-radius: 20px; cursor: pointer;
+  border: 1px solid var(--border-2); background: var(--surface-2); color: var(--ink-2);
+  transition: background .15s, color .15s;
+}
+.media-preset-chip:hover { background: var(--ink-3); color: #fff; }
+.media-preset-chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 .media-tag-input-wrap { display: flex; gap: .4rem; flex: 1; min-width: 180px; }
 .media-tag-inp {
   flex: 1; padding: .35rem .65rem; border: 1px solid var(--border-2);
@@ -1815,13 +1825,15 @@ textarea.inp {
     <!-- Tag prompt (shown after selecting files) -->
     <div class="media-tag-prompt" id="media-tag-prompt">
       <div class="media-tag-prompt-label" id="media-tag-prompt-label">Add tags to your upload</div>
+      <div class="media-preset-label">Quick-tag by content type:</div>
+      <div class="media-preset-chips" id="upload-preset-chips"></div>
       <div class="media-tag-chips" id="upload-tag-chips"></div>
       <div class="media-tag-row">
         <div class="media-tag-input-wrap">
           <input class="media-tag-inp" id="upload-tag-inp" type="text"
-                 placeholder="e.g. latte, seasonal, pastry…"
+                 placeholder="Custom tag…"
                  onkeydown="onUploadTagKey(event)"/>
-          <button class="btn-tag-add" onclick="addUploadTag()">+ Add Tag</button>
+          <button class="btn-tag-add" onclick="addUploadTag()">+ Add</button>
         </div>
       </div>
       <div class="media-tag-prompt-actions">
@@ -2000,6 +2012,19 @@ Post: "${text}"
 Return ONLY valid JSON, no markdown fences:
 {"voice":{"score":0,"max":5},"platform":{"score":0,"max":5},"specificity":{"score":0,"max":5},"nopatterns":{"score":0,"max":5},"engagement":{"score":0,"max":5},"verdict":"Strong Post","improvement":"One specific actionable suggestion"}`;
 
+const CONTENT_TYPES = [
+  "New seasonal drink launch",
+  "Weekly Baker's Choice reveal",
+  "Board game night event",
+  "Community book trade highlight",
+  "Ferry commuter morning special",
+  "Behind-the-scenes baking",
+  "Rainy PNW day cozy vibes",
+  "Regular customer spotlight",
+  "Seasonal / holiday promotion",
+  "General brand post",
+];
+
 const CONNECTED = { ig: false, fb: false, tt: false };
 const PLAT_KEYS = { "Instagram": "ig", "Facebook": "fb", "TikTok": "tt" };
 
@@ -2090,14 +2115,20 @@ async function handleGenerate() {
     });
 
     setUI("done");
-    renderCards(combined);
+    renderCards(combined, contentType);
     addHistory(contentType, postsRaw);
 
-    // Auto-generate images for all cards immediately
+    // For each card: use library media if available, otherwise generate via API
     Object.keys(combined).forEach((platform, i) => {
       const cid = safeId(platform) + "_" + i;
-      // Stagger slightly so requests don't all fire simultaneously
-      setTimeout(() => doGenerateImage(cid, platform, 0), i * 800);
+      const matches = findMatchingMedia(platform, contentType);
+      if (matches.length) {
+        // Small delay so card DOM is ready
+        setTimeout(() => applyLibraryMedia(matches[0], cid, platform), i * 100);
+      } else {
+        // Stagger API calls so they don't all fire simultaneously
+        setTimeout(() => doGenerateImage(cid, platform, 0), i * 800);
+      }
     });
 
   } catch (err) {
@@ -2303,6 +2334,19 @@ async function doGenerateImage(cid, platform, attempt) {
    RUNWAYML — TikTok video generation (image-to-video)
    ────────────────────────────────────────────────────────── */
 async function generateTikTokVideo(cid) {
+  // Use library video if one matches the current content type
+  const container = document.getElementById("usemedia-" + cid);
+  const ct = container?.dataset.contentType || null;
+  const videoMatches = findMatchingMedia("TikTok", ct);
+  if (videoMatches.length) {
+    useMediaInCard(videoMatches[0].id, cid, "TikTok");
+    const btn = document.getElementById("vidbtn-" + cid);
+    if (btn) btn.textContent = "↻ Use different video";
+    const acts = document.getElementById("vidacts-" + cid);
+    if (acts) acts.style.display = "flex";
+    return;
+  }
+
   if (RUNWAY_KEY.includes("YOUR_")) {
     alert("Add your RunwayML API key (RUNWAY_KEY) in the HTML file to use video generation.");
     return;
@@ -2524,6 +2568,7 @@ function handleSelectedFiles(files) {
     ? `Tag "${valid[0].name}" so the AI knows when to use it:`
     : `Tag ${valid.length} files so the AI knows when to use them:`;
   document.getElementById("media-tag-prompt-label").textContent = label;
+  renderPresetTagChips();
   document.getElementById("media-tag-prompt").classList.add("show");
 }
 
@@ -2543,6 +2588,24 @@ function addUploadTag() {
 
 function removeUploadTag(tag) {
   uploadTags = uploadTags.filter(t => t !== tag);
+  renderUploadTagChips();
+}
+
+function renderPresetTagChips() {
+  const container = document.getElementById("upload-preset-chips");
+  container.innerHTML = CONTENT_TYPES.map(t => `
+    <button class="media-preset-chip${uploadTags.includes(t.toLowerCase()) ? ' active' : ''}"
+            onclick="togglePresetTag('${escHtml(t)}')">${escHtml(t)}</button>`).join("");
+}
+
+function togglePresetTag(tag) {
+  const norm = tag.toLowerCase();
+  if (uploadTags.includes(norm)) {
+    uploadTags = uploadTags.filter(t => t !== norm);
+  } else {
+    uploadTags.push(norm);
+  }
+  renderPresetTagChips();
   renderUploadTagChips();
 }
 
@@ -2695,27 +2758,43 @@ async function deleteMediaItem(id) {
 }
 
 /* ── "Your Media" in post cards ── */
-function findMatchingMedia(platform) {
+function findMatchingMedia(platform, contentType) {
   const type = platform === "TikTok" ? "video" : "image";
-  return mediaItems.filter(m => m.type === type);
+  const ct = contentType ? contentType.toLowerCase() : null;
+  return mediaItems.filter(m => {
+    if (m.type !== type) return false;
+    if (!ct) return true;
+    // Show if any tag matches or overlaps with the content type
+    return m.tags.some(tag => {
+      const t = tag.toLowerCase();
+      return t === ct || ct.includes(t) || t.includes(ct);
+    });
+  });
 }
 
 function refreshAllCardMedia() {
   document.querySelectorAll("[id^='usemedia-']").forEach(el => {
-    const cid      = el.id.replace("usemedia-", "");
-    const platform = el.dataset.platform;
-    if (platform) populateCardMedia(cid, platform);
+    const cid         = el.id.replace("usemedia-", "");
+    const platform    = el.dataset.platform;
+    const contentType = el.dataset.contentType || null;
+    if (platform) populateCardMedia(cid, platform, contentType);
   });
 }
 
-function populateCardMedia(cid, platform) {
+function populateCardMedia(cid, platform, contentType) {
   const container = document.getElementById("usemedia-" + cid);
   if (!container) return;
   container.dataset.platform = platform;
-  const matches = findMatchingMedia(platform);
+  if (contentType) container.dataset.contentType = contentType;
+  const ct = contentType || container.dataset.contentType || null;
+  const matches = findMatchingMedia(platform, ct);
 
   if (!matches.length) {
-    container.innerHTML = `<span class="use-media-empty">No ${platform === 'TikTok' ? 'videos' : 'photos'} uploaded yet. <button class="btn-open-library" onclick="openMediaLibrary()">Upload</button></span>`;
+    const allType = mediaItems.filter(m => m.type === (platform === "TikTok" ? "video" : "image"));
+    const hint = allType.length
+      ? `No media tagged for this content type. <button class="btn-open-library" onclick="openMediaLibrary()">View library</button>`
+      : `No ${platform === 'TikTok' ? 'videos' : 'photos'} uploaded yet. <button class="btn-open-library" onclick="openMediaLibrary()">Upload</button>`;
+    container.innerHTML = `<span class="use-media-empty">${hint}</span>`;
     return;
   }
 
@@ -2728,6 +2807,19 @@ function populateCardMedia(cid, platform) {
         : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:1.5rem">${item.type==='video'?'🎬':'🖼️'}</div>`}
       <div class="use-media-type">${item.type === 'video' ? '▶' : '📷'}</div>
     </div>`).join("");
+}
+
+/* Auto-applies the first matching library item and resets button state */
+function applyLibraryMedia(item, cid, platform) {
+  useMediaInCard(item.id, cid, platform);
+  if (item.type === "image") {
+    const btn = document.getElementById("imgbtn-" + cid);
+    if (btn) {
+      btn.classList.remove("loading");
+      btn.disabled = false;
+      btn.querySelector(".btn-label").textContent = "↻ New image";
+    }
+  }
 }
 
 function useMediaInCard(mediaId, cid, platform) {
@@ -2933,7 +3025,7 @@ function buildMockup(platform, cid, text, hashtags, sound, imagePrompt) {
 /* ──────────────────────────────────────────────────────────
    RENDER OUTPUT CARDS
    ────────────────────────────────────────────────────────── */
-function renderCards(combined) {
+function renderCards(combined, contentType) {
   const grid    = document.getElementById("cards");
   const entries = Object.entries(combined);
 
@@ -3050,8 +3142,9 @@ function renderCards(combined) {
                  : `<div class="card-foot-bare"><span class="char-c">${text.length} chars</span></div>`}
     `;
     card.querySelector(`#usemedia-${cid}`).dataset.platform = platform;
+    if (contentType) card.querySelector(`#usemedia-${cid}`).dataset.contentType = contentType;
     grid.appendChild(card);
-    populateCardMedia(cid, platform);
+    populateCardMedia(cid, platform, contentType);
   });
 }
 
