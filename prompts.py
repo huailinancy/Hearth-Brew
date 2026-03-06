@@ -63,6 +63,7 @@ PLATFORM_TEMPLATES = {
 Platform: Instagram
 
 Instructions:
+- Output ONLY the post text — no preamble, no "Here's a caption", no labels, no markdown headers
 - Write a warm, inviting caption — visual-first, so describe or reference the scene
 - Length: 2–4 sentences
 - Use 1–2 emojis maximum, placed naturally (not at the start of every line)
@@ -77,6 +78,7 @@ Post topic: {topic}
 Platform: X / Twitter
 
 Instructions:
+- Output ONLY the post text — no preamble, no "Here's a tweet", no labels
 - Write ONE punchy, personality-forward post
 - 200 characters or fewer — hard limit, count carefully
 - Lead with the hook immediately — no warm-up
@@ -92,6 +94,7 @@ Post topic: {topic}
 Platform: Facebook
 
 Instructions:
+- Output ONLY the post text — no preamble, no "Here's a post", no labels, no markdown headers
 - Write a warm, community-focused post
 - Length: 3–5 sentences — slightly more informational than other platforms
 - Include a soft call-to-action (stop by, come find us, grab one before they're gone, etc.)
