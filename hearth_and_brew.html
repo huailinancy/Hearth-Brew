@@ -402,19 +402,18 @@ textarea.inp {
 .et-name { font-size: .8rem; font-weight: 600; color: var(--ink); }
 .et-desc { font-size: .68rem; color: var(--ink-3); margin-top: .2rem; line-height: 1.4; }
 
-/* ── Cards grid — horizontal flex ── */
+/* ── Cards grid — responsive columns ── */
 #cards {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
   gap: 2rem;
-  justify-content: center;
   align-items: flex-start;
 }
 
 /* Card column wrapper */
 .card {
-  width: 360px;
-  flex-shrink: 0;
+  width: 100%;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: .65rem;
@@ -1111,6 +1110,16 @@ textarea.inp {
   margin: .15rem 0 .4rem; font-style: italic;
 }
 
+/* ══ MOCK FRAME SIZING ══════════════════════════════ */
+.mock-frame {
+  max-width: 520px;
+  margin: 0 auto;
+  width: 100%;
+}
+.mock-tt.mock-frame {
+  max-width: 320px;
+}
+
 /* ══ INSTAGRAM ════════════════════════════════════════ */
 .mock-ig {
   background: #fff;
@@ -1144,11 +1153,11 @@ textarea.inp {
 .mock-ig-icon { width: 24px; height: 24px; cursor: default; display: block; }
 .mock-ig-icon svg { width: 24px; height: 24px; display: block; }
 .mock-ig-body { padding: .1rem .75rem .7rem; }
-.mock-ig-likes { font-size: .75rem; font-weight: 700; color: #262626; margin-bottom: .25rem; }
-.mock-ig-caption { font-size: .73rem; color: #262626; line-height: 1.55; }
+.mock-ig-likes { font-size: .88rem; font-weight: 700; color: #262626; margin-bottom: .25rem; }
+.mock-ig-caption { font-size: .88rem; color: #262626; line-height: 1.6; }
 .mock-ig-capun { font-weight: 700; margin-right: .25rem; }
-.mock-ig-tags { font-size: .72rem; color: #00376B; margin-top: .2rem; line-height: 1.6; }
-.mock-ig-time { font-size: .6rem; color: #8e8e8e; text-transform: uppercase; letter-spacing: .05em; margin-top: .35rem; }
+.mock-ig-tags { font-size: .86rem; color: #00376B; margin-top: .2rem; line-height: 1.65; }
+.mock-ig-time { font-size: .72rem; color: #8e8e8e; text-transform: uppercase; letter-spacing: .05em; margin-top: .35rem; }
 
 /* ══ FACEBOOK ════════════════════════════════════════ */
 .mock-fb {
@@ -1164,21 +1173,21 @@ textarea.inp {
 .mock-fb-meta { font-size: .66rem; color: #65676B; margin-top: .08rem; }
 .mock-fb-text {
   padding: 0 .75rem .5rem;
-  font-size: .77rem; color: #050505; line-height: 1.65; white-space: pre-wrap;
+  font-size: .93rem; color: #050505; line-height: 1.7; white-space: pre-wrap;
 }
 .mock-fb-imgslot { width: 100%; aspect-ratio: 16/9; }
 .mock-fb-imgslot .img-preview { width: 100%; height: 100%; }
 .mock-fb-reactions {
   display: flex; justify-content: space-between;
   padding: .35rem .75rem;
-  font-size: .7rem; color: #65676B;
+  font-size: .82rem; color: #65676B;
   border-bottom: 1px solid #E4E6EB;
 }
 .mock-fb-actions { display: flex; padding: .1rem .5rem; gap: 0; }
 .mock-fb-btn {
   flex: 1; display: flex; align-items: center; justify-content: center;
   gap: .3rem; padding: .42rem .2rem;
-  font-size: .74rem; font-weight: 700; color: #65676B;
+  font-size: .86rem; font-weight: 700; color: #65676B;
   background: none; border: none; border-radius: 6px;
   cursor: default; font-family: inherit;
 }
@@ -1216,15 +1225,15 @@ textarea.inp {
   flex: 1; padding: .75rem .75rem 1rem;
   max-width: calc(100% - 60px);
 }
-.mock-tt-username { font-size: .8rem; font-weight: 700; color: #fff; margin-bottom: .2rem; }
+.mock-tt-username { font-size: .92rem; font-weight: 700; color: #fff; margin-bottom: .2rem; }
 .mock-tt-caption {
-  font-size: .72rem; color: rgba(255,255,255,.92); line-height: 1.5;
-  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+  font-size: .84rem; color: rgba(255,255,255,.92); line-height: 1.55;
+  display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;
 }
-.mock-tt-hashtags { font-size: .71rem; color: #fff; font-weight: 600; margin-top: .2rem; }
+.mock-tt-hashtags { font-size: .82rem; color: #fff; font-weight: 600; margin-top: .2rem; }
 .mock-tt-sound {
   display: flex; align-items: center; gap: .3rem;
-  font-size: .68rem; color: rgba(255,255,255,.8); margin-top: .4rem;
+  font-size: .78rem; color: rgba(255,255,255,.8); margin-top: .4rem;
 }
 .mock-tt-sidebar {
   position: absolute; right: .5rem; bottom: 1rem;
